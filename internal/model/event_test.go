@@ -3,7 +3,7 @@ package model
 import "testing"
 
 func TestReadEvents(t *testing.T) {
-	events, badLines, err := ReadEvents("../../testdata/control/event1.jsonl")
+	events, badLines, err := ReadEvents("../../testdata/control/event.jsonl")
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
