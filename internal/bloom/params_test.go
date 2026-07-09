@@ -53,3 +53,24 @@ func TestParams5(t *testing.T) {
 		t.Errorf("При n=10, p=0,5 ожидалось m=15, k=1, а получилось m=%v и k=%v", m, k)
 	}
 }
+
+func TestParamsNegativeN(t *testing.T) {
+	_, _, err := Params(-100, 0.01)
+	if err == nil {
+		t.Errorf("ожидали ошибку при отрицательном n")
+	}
+}
+
+func TestParamsZeroRate(t *testing.T) {
+	_, _, err := Params(1000, 0)
+	if err == nil {
+		t.Errorf("ожидали ошибку при p=0")
+	}
+}
+
+func TestParamsRateMoreOne(t *testing.T) {
+	_, _, err := Params(1000, 1.5)
+	if err == nil {
+		t.Errorf("ожидали ошибку при p=1.5")
+	}
+}

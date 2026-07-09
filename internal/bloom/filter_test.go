@@ -49,7 +49,7 @@ func BenchmarkFilterMap(b *testing.B) {
 }
 
 func TestBloomFilter(t *testing.T) {
-	total, unique, duplicates, err := BloomFilter(4, 0.01, "../../testdata/control/event.jsonl")
+	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event.jsonl")
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestBloomFilter(t *testing.T) {
 }
 
 func TestBloomFilter1(t *testing.T) {
-	total, unique, duplicates, err := BloomFilter(100, 0.1, "../../testdata/control/event1.jsonl")
+	total, unique, duplicates, err := BloomFilter(0.1, "../../testdata/control/event1.jsonl")
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestBloomFilter1(t *testing.T) {
 }
 
 func TestBloomFilter2(t *testing.T) {
-	total, unique, duplicates, err := BloomFilter(50, 0.01, "../../testdata/control/event2.jsonl")
+	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event2.jsonl")
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestBloomFilter2(t *testing.T) {
 }
 
 func TestBloomFilter3(t *testing.T) {
-	total, unique, duplicates, err := BloomFilter(200, 0.01, "../../testdata/control/event3.jsonl")
+	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event3.jsonl")
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}

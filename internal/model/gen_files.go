@@ -26,11 +26,17 @@ type genEvent struct {
 
 // Генератор событий
 // Вход: путь и название файла, общее кол-во, источники, вероятность дублей, seed
-func GenerateEvents(path string, n int, s int, duble float64, seed int64) {
+func GenerateEvents(path string, n int, s int, duble float64, seed int64) error {
+	if path == "" {
+		return fmt.Errorf("неправильный аргумент path")
+	} else if n == 0 {
+		return fmt.Errorf("неправильный аргумент n")
+	} else if duble < 0.0 || duble > 1.0 {
+		return fmt.Errorf("неправильный аргумент duble")
+	}
 	file, err := os.Create(path)
 	if err != nil {
-		fmt.Println("Ошибка создания файла:", err)
-		return
+		return fmt.Errorf("не удалось создать файл %s: %w", path, err)
 	}
 	defer file.Close()
 	writer := bufio.NewWriter(file)
@@ -97,6 +103,7 @@ func GenerateEvents(path string, n int, s int, duble float64, seed int64) {
 	}
 
 	if err := writer.Flush(); err != nil {
-		fmt.Println("Ошибка flush:", err)
+		return fmt.Errorf("ошибка записи в файл: %w", err)
 	}
+	return nil
 }

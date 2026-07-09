@@ -10,14 +10,13 @@ import (
 // Возвращает total (всего событий), unique (уникальных), duplicates (дубликатов)
 func MapFilter(path string) (int, int, int, error) {
 	eventsMap := make(map[string]model.Event)
-	events, _, err := model.ReadEvents(path)
+	events, _, total, _, err := model.ReadEvents(path)
 	if err != nil {
 		return 0, 0, 0, err
 	}
 	for i, event := range events {
 		eventsMap[event.EventHash] = events[i]
 	}
-	total := len(events)
 	unique := len(eventsMap)
 	duplicates := total - unique
 	return total, unique, duplicates, nil
@@ -50,9 +49,12 @@ func getIndexes(key string, k int, m uint64) []uint64 {
 
 // Фильтр Блума
 // Возвращает total (всего событий), unique (уникальных), duplicates (дубликатов)
-func BloomFilter(n int, p float64, path string) (int, int, int, error) {
-	events, _, _ := model.ReadEvents(path)
-	m, k, err1 := Params(n, p)
+func BloomFilter(p float64, path string) (int, int, int, error) {
+	events, _, total, _, err2 := model.ReadEvents(path)
+	if err2 != nil {
+		return 0, 0, 0, err2
+	}
+	m, k, err1 := Params(total, p)
 	if err1 != nil {
 		return 0, 0, 0, err1
 	}
@@ -60,7 +62,6 @@ func BloomFilter(n int, p float64, path string) (int, int, int, error) {
 	if err != nil {
 		return 0, 0, 0, err
 	}
-	total := n
 	duplicates := 0
 
 	for _, event := range events {

@@ -1,0 +1,13 @@
+{"seq":1,"event_id":"evt_000001","event_hash":"6e7f25d1e7f84e7f","source":"collector_01","timestamp":"2026-07-07T12:45:00Z"}
+{invalid json here
+{"seq":3,"event_id":"evt_000003","event_hash":"c3d4e5f60718a1b2","source":"collector_02"}
+{"seq":4,"event_id":"","event_hash":"dafb254017c4f3e7","source":"collector_04","timestamp":"2026-07-07T12:45:15Z"}
+{"seq":0,"event_id":"evt_000005","event_hash":"230f00ea7909ecea"}
+{"seq":6,"event_id":"evt_000006","event_hash":"","source":"collector_01"}
+
+{"seq":7,"event_id":"evt_000007","event_hash":"69f0809de4c1ad99","source":"collector_01","unknown_field":"suspicious value","another_extra":123}
+{"seq":8,"event_id":"evt_000008","event_hash":"f2a50c3af84d27d9","source":"collector_99"}
+{"seq":9,"event_id":"evt_000009","event_hash":"f6371c6113f5f6bc","source":"collector_00"}
+{"seq":10,"event_id":"evt_000010","event_hash":"f6c20ebb5dc81442","source":"collector_100"}
+{"seq":11,"event_id":"evt_000011","event_hash":"602f6d1f409344f1","source":"unknown_source"}
+{"seq":12,"event_id":"evt_000012","event_hash":"1f95a322","source":"collector_02"}
