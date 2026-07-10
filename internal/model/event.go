@@ -43,11 +43,6 @@ func (e *Event) Validate() error {
 	if len(e.Source) > 256 {
 		return fmt.Errorf("source превышает допустимую длину %d символов", 256)
 	}
-	if e.Timestamp != "" {
-		if _, err := time.Parse(time.RFC3339, e.Timestamp); err != nil {
-			return fmt.Errorf("timestamp должен быть в формате RFC3339, получено %q", e.Timestamp)
-		}
-	}
 	return nil
 }
 
@@ -70,12 +65,21 @@ func (e *Event) ValidateSource() (bool, string) {
 	return true, ""
 }
 
+func (e *Event) ValidateTimestamp() bool {
+	if e.Timestamp != "" {
+		if _, err := time.Parse(time.RFC3339, e.Timestamp); err != nil {
+			return false
+		}
+	}
+	return true
+}
+
 // Считывание файла входных данных построчно
-// Получает: путь к файлу
+// Получает: путь к файлу, флаг пропуска невалидных данных (source, time)
 // Возвращает: массив распарсенных данных, массив пропущенных битых строк,
 // количество элементов, список невалидных источников, ошибку
 // Если какого-то элемента выходных данных нет - возвращает nil
-func ReadEvents(path string) ([]Event, []int, int, []string, error) {
+func ReadEvents(path string, fs bool) ([]Event, []int, int, []string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, nil, 0, nil, fmt.Errorf("не удалось открыть файл %s: %w", path, err)
@@ -100,15 +104,27 @@ func ReadEvents(path string) ([]Event, []int, int, []string, error) {
 			continue
 		}
 		err1 := event.Validate()
+		if err1 != nil {
+			continue
+		}
 		flag, str := event.ValidateSource()
+		flag1 := event.ValidateTimestamp()
+		if !flag {
+			badSources = append(badSources, str)
+		}
 
-		//Вот тут сделать флаг для невалидных источников
-		if flag == true {
-			if err1 == nil {
+		if fs {
+			if flag && flag1 {
 				events = append(events, event)
 			}
 		} else {
-			badSources = append(badSources, str)
+			if !flag {
+				event.Source = ""
+			}
+			if !flag1 {
+				event.Timestamp = ""
+			}
+			events = append(events, event)
 		}
 	}
 

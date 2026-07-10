@@ -31,7 +31,7 @@ func GenerateEvents(path string, n int, s int, duble float64, seed int64) error 
 		return fmt.Errorf("неправильный аргумент path")
 	} else if n == 0 {
 		return fmt.Errorf("неправильный аргумент n")
-	} else if duble < 0.0 || duble > 1.0 {
+	} else if duble < 0.0 || duble > 0.9 {
 		return fmt.Errorf("неправильный аргумент duble")
 	}
 	file, err := os.Create(path)

@@ -8,9 +8,9 @@ import (
 
 // Точная дедупликация событий через map
 // Возвращает total (всего событий), unique (уникальных), duplicates (дубликатов)
-func MapFilter(path string) (int, int, int, error) {
+func MapFilter(path string, fs bool) (int, int, int, error) {
 	eventsMap := make(map[string]model.Event)
-	events, _, total, _, err := model.ReadEvents(path)
+	events, _, total, _, err := model.ReadEvents(path, fs)
 	if err != nil {
 		return 0, 0, 0, err
 	}
@@ -49,8 +49,8 @@ func getIndexes(key string, k int, m uint64) []uint64 {
 
 // Фильтр Блума
 // Возвращает total (всего событий), unique (уникальных), duplicates (дубликатов)
-func BloomFilter(p float64, path string) (int, int, int, error) {
-	events, _, total, _, err2 := model.ReadEvents(path)
+func BloomFilter(p float64, path string, fs bool) (int, int, int, error) {
+	events, _, total, _, err2 := model.ReadEvents(path, fs)
 	if err2 != nil {
 		return 0, 0, 0, err2
 	}

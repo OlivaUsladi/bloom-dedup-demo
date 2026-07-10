@@ -3,7 +3,7 @@ package bloom
 import "testing"
 
 func TestFilterMap(t *testing.T) {
-	a, b, c, err := MapFilter("../../testdata/control/event.jsonl")
+	a, b, c, err := MapFilter("../../testdata/control/event.jsonl", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -13,7 +13,7 @@ func TestFilterMap(t *testing.T) {
 }
 
 func TestFilterMap1(t *testing.T) {
-	a, b, c, err := MapFilter("../../testdata/control/event1.jsonl")
+	a, b, c, err := MapFilter("../../testdata/control/event1.jsonl", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,7 +23,7 @@ func TestFilterMap1(t *testing.T) {
 }
 
 func TestFilterMap2(t *testing.T) {
-	a, b, c, err := MapFilter("../../testdata/control/event2.jsonl")
+	a, b, c, err := MapFilter("../../testdata/control/event2.jsonl", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestFilterMap2(t *testing.T) {
 }
 
 func TestFilterMap3(t *testing.T) {
-	a, b, c, err := MapFilter("../../testdata/control/event3.jsonl")
+	a, b, c, err := MapFilter("../../testdata/control/event3.jsonl", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,12 +44,12 @@ func TestFilterMap3(t *testing.T) {
 
 func BenchmarkFilterMap(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		MapFilter("../../testdata/control/event.jsonl")
+		MapFilter("../../testdata/control/event.jsonl", true)
 	}
 }
 
 func TestBloomFilter(t *testing.T) {
-	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event.jsonl")
+	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event.jsonl", true)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestBloomFilter(t *testing.T) {
 }
 
 func TestBloomFilter1(t *testing.T) {
-	total, unique, duplicates, err := BloomFilter(0.1, "../../testdata/control/event1.jsonl")
+	total, unique, duplicates, err := BloomFilter(0.1, "../../testdata/control/event1.jsonl", true)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestBloomFilter1(t *testing.T) {
 }
 
 func TestBloomFilter2(t *testing.T) {
-	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event2.jsonl")
+	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event2.jsonl", true)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestBloomFilter2(t *testing.T) {
 }
 
 func TestBloomFilter3(t *testing.T) {
-	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event3.jsonl")
+	total, unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event3.jsonl", true)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}

@@ -10,7 +10,7 @@ func TestGenerateEvents1(t *testing.T) {
 	n := 100
 	_ = GenerateEvents(path, n, 5, 0.1, 42)
 
-	_, badLines, total, sour, err := ReadEvents(path)
+	_, badLines, total, sour, err := ReadEvents(path, true)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
@@ -31,7 +31,7 @@ func TestGenerateEvents2(t *testing.T) {
 	n := 50
 	_ = GenerateEvents(path, n, 1, 0.0, 7)
 
-	events, badLines, total, sour, err := ReadEvents(path)
+	events, badLines, total, sour, err := ReadEvents(path, true)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
@@ -57,7 +57,7 @@ func TestGenerateEvents3(t *testing.T) {
 	n := 200
 	_ = GenerateEvents(path, n, 20, 0.5, 123)
 
-	_, badLines, total, sour, err := ReadEvents(path)
+	_, badLines, total, sour, err := ReadEvents(path, true)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
