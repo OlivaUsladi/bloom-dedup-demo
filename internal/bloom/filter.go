@@ -7,19 +7,19 @@ import (
 )
 
 // Точная дедупликация событий через map
-// Возвращает total (всего событий), unique (уникальных), duplicates (дубликатов)
-func MapFilter(path string, fs bool) (int, int, int, error) {
+// Возвращает unique (уникальных), duplicates (дубликатов)
+func MapFilter(path string, fs bool) (int, int, error) {
 	eventsMap := make(map[string]model.Event)
 	events, _, total, _, err := model.ReadEvents(path, fs)
 	if err != nil {
-		return 0, 0, 0, err
+		return 0, 0, err
 	}
 	for i, event := range events {
 		eventsMap[event.EventHash] = events[i]
 	}
 	unique := len(eventsMap)
 	duplicates := total - unique
-	return total, unique, duplicates, nil
+	return unique, duplicates, nil
 }
 
 // Вычисляет два независимых хеша строки для дальнейшего использования в схеме двойного хеширования
@@ -48,19 +48,19 @@ func getIndexes(key string, k int, m uint64) []uint64 {
 }
 
 // Фильтр Блума
-// Возвращает total (всего событий), unique (уникальных), duplicates (дубликатов)
-func BloomFilter(p float64, path string, fs bool) (int, int, int, error) {
+// Возвращает unique (уникальных), duplicates (дубликатов)
+func BloomFilter(p float64, path string, fs bool) (int, int, error) {
 	events, _, total, _, err2 := model.ReadEvents(path, fs)
 	if err2 != nil {
-		return 0, 0, 0, err2
+		return 0, 0, err2
 	}
 	m, k, err1 := Params(total, p)
 	if err1 != nil {
-		return 0, 0, 0, err1
+		return 0, 0, err1
 	}
 	bs, err := bitset.New(uint(m))
 	if err != nil {
-		return 0, 0, 0, err
+		return 0, 0, err
 	}
 	duplicates := 0
 
@@ -80,5 +80,5 @@ func BloomFilter(p float64, path string, fs bool) (int, int, int, error) {
 		}
 	}
 	unique := total - duplicates
-	return total, unique, duplicates, nil
+	return unique, duplicates, nil
 }
