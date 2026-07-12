@@ -3,7 +3,6 @@ package report
 import (
 	"bloom-dedup-demo/internal/bloom"
 	"bloom-dedup-demo/internal/model"
-	"time"
 )
 
 type SourceStats struct {
@@ -25,36 +24,34 @@ type Report struct {
 	RealFalsePositiveRate   float64                `json:"real_false_positive_rate"`
 	BloomMemoryBytes        int                    `json:"bloom_memory_bytes"`
 	ExactMapMemoryBytes     int                    `json:"exact_map_memory_bytes"`
-	DurationMs              int64                  `json:"duration_ms"`
+	MapDurationMs           int64                  `json:"map_duration_ms"`
+	BloomDurationMs         int64                  `json:"bloom_duration_ms"`
 	BySource                map[string]SourceStats `json:"by_source"`
 	InvalidSources          []string               `json:"invalid_sources"`
 }
 
 // Создание отчёта
 func BuildReport(path string, cfg *model.Config, strict bool) (*Report, error) {
-	events, badLines, total, badSources, err := model.ReadEvents(path, strict)
+	events, badLines, badSources, err := model.ReadEvents(path, strict)
+	total := len(events)
 	if err != nil {
 		return nil, err
 	}
-	start := time.Now()
-	exactUnique, exactDup, err1 := bloom.MapFilter(path, strict)
+
+	exactUnique, exactDup, mapDuration, mapMemory, err1 := bloom.MapFilter(events)
 	if err1 != nil {
 		return nil, err1
 	}
 
-	//Если оценка памяти будет внутри фильтров, то убрать этот вызов
-	m, _, err2 := bloom.Params(cfg.ExpectedItems, cfg.FalsePositiveRate)
-
-	if err2 != nil {
-		return nil, err2
-	}
-	bloomNew, bloomDub, err3 := bloom.BloomFilter(cfg.FalsePositiveRate, path, strict)
+	bloomNew, bloomDup, bloomDuration, bloomMemory, err3 := bloom.BloomFilter(events, cfg.FalsePositiveRate)
 	if err3 != nil {
 		return nil, err3
 	}
-	duration := time.Since(start).Milliseconds()
 
-	estFP := bloomDub - exactDup
+	estFP := bloomDup - exactDup
+	if estFP < 0 {
+		estFP = 0
+	}
 	var fpRate float64
 	if exactUnique > 0 {
 		fpRate = float64(estFP) / float64(exactUnique)
@@ -62,19 +59,19 @@ func BuildReport(path string, cfg *model.Config, strict bool) (*Report, error) {
 
 	invalid := uniqueStrings(badSources)
 
-	//память и время перенести внутрь фильтров
 	return &Report{
 		TotalRecords:            total,
 		BadLines:                len(badLines),
 		ExactUnique:             exactUnique,
 		ExactDuplicates:         exactDup,
 		BloomNew:                bloomNew,
-		BloomMayDuplicate:       bloomDub,
+		BloomMayDuplicate:       bloomDup,
 		EstimatedFalsePositives: estFP,
 		RealFalsePositiveRate:   fpRate,
-		BloomMemoryBytes:        (m + 7) / 8,      //память
-		ExactMapMemoryBytes:     exactUnique * 80, //пмять
-		DurationMs:              duration,
+		BloomMemoryBytes:        bloomMemory,
+		ExactMapMemoryBytes:     mapMemory,
+		MapDurationMs:           mapDuration,
+		BloomDurationMs:         bloomDuration,
 		BySource:                BuildBySource(events),
 		InvalidSources:          invalid,
 	}, nil

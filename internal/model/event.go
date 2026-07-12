@@ -76,13 +76,13 @@ func (e *Event) ValidateTimestamp() bool {
 
 // Считывание файла входных данных построчно
 // Получает: путь к файлу, флаг пропуска невалидных данных (source, time)
-// Возвращает: массив распарсенных данных, массив пропущенных битых строк,
-// количество элементов, список невалидных источников, ошибку
+// Возвращает: массив распарсенных данных, массив пропущенных битых и невалидных строк,
+// список невалидных источников, ошибку
 // Если какого-то элемента выходных данных нет - возвращает nil
-func ReadEvents(path string, fs bool) ([]Event, []int, int, []string, error) {
+func ReadEvents(path string, fs bool) ([]Event, []int, []string, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, nil, 0, nil, fmt.Errorf("не удалось открыть файл %s: %w", path, err)
+		return nil, nil, nil, fmt.Errorf("не удалось открыть файл %s: %w", path, err)
 	}
 	defer file.Close()
 
@@ -105,6 +105,7 @@ func ReadEvents(path string, fs bool) ([]Event, []int, int, []string, error) {
 		}
 		err1 := event.Validate()
 		if err1 != nil {
+			badLines = append(badLines, lineNum)
 			continue
 		}
 		flag, str := event.ValidateSource()
@@ -127,11 +128,9 @@ func ReadEvents(path string, fs bool) ([]Event, []int, int, []string, error) {
 			events = append(events, event)
 		}
 	}
-
-	n := len(events)
 	if err := scanner.Err(); err != nil {
-		return nil, nil, 0, nil, fmt.Errorf("ошибка чтения файла %s: %w", path, err)
+		return nil, nil, nil, fmt.Errorf("ошибка чтения файла %s: %w", path, err)
 	}
 
-	return events, badLines, n, badSources, nil
+	return events, badLines, badSources, nil
 }

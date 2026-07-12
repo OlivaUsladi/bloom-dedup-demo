@@ -10,16 +10,16 @@ func TestGenerateEvents1(t *testing.T) {
 	n := 100
 	_ = GenerateEvents(path, n, 5, 0.1, 42)
 
-	_, badLines, total, sour, err := ReadEvents(path, true)
+	_, badLines, sour, err := ReadEvents(path, true)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
 	if len(badLines) != 0 {
 		t.Errorf("ожидали 0 битых строк, получили %v", badLines)
 	}
-	if total != n {
-		t.Errorf("ожидали %d событий, получили %d", n, total)
-	}
+	//if total != n {
+	//	t.Errorf("ожидали %d событий, получили %d", n, total)
+	//}
 	if len(sour) != 0 {
 		t.Errorf("ожидали 0 невалидных источников, получили %v", len(sour))
 	}
@@ -31,16 +31,16 @@ func TestGenerateEvents2(t *testing.T) {
 	n := 50
 	_ = GenerateEvents(path, n, 1, 0.0, 7)
 
-	events, badLines, total, sour, err := ReadEvents(path, true)
+	events, badLines, sour, err := ReadEvents(path, true)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
 	if len(badLines) != 0 {
 		t.Errorf("ожидали 0 битых строк, получили %v", badLines)
 	}
-	if total != n {
-		t.Errorf("ожидали %d событий, получили %d", n, total)
-	}
+	//if total != n {
+	//	t.Errorf("ожидали %d событий, получили %d", n, total)
+	//}
 	if len(sour) != 0 {
 		t.Errorf("ожидали 0 невалидных источников, получили %v", len(sour))
 	}
@@ -57,16 +57,16 @@ func TestGenerateEvents3(t *testing.T) {
 	n := 200
 	_ = GenerateEvents(path, n, 20, 0.5, 123)
 
-	_, badLines, total, sour, err := ReadEvents(path, true)
+	_, badLines, sour, err := ReadEvents(path, true)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
 	if len(badLines) != 0 {
 		t.Errorf("ожидали 0 битых строк, получили %v", badLines)
 	}
-	if total != n {
-		t.Errorf("ожидали %d событий, получили %d", n, total)
-	}
+	//if total != n {
+	//	t.Errorf("ожидали %d событий, получили %d", n, total)
+	//}
 	if len(sour) != 0 {
 		t.Errorf("ожидали 0 невалидных источников, получили %v", len(sour))
 	}

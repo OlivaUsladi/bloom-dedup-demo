@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestBuildReport_Basic(t *testing.T) {
+func TestBuildReport(t *testing.T) {
 	cfg := &model.Config{
 		ExpectedItems:     4,
 		FalsePositiveRate: 0.01,
@@ -34,8 +34,11 @@ func TestBuildReport_Basic(t *testing.T) {
 	if report.ExactMapMemoryBytes <= 0 {
 		t.Errorf("ожидали положительный ExactMapMemoryBytes, получили %d", report.ExactMapMemoryBytes)
 	}
-	if report.DurationMs < 0 {
-		t.Errorf("DurationMs не может быть отрицательным, получили %d", report.DurationMs)
+	if report.MapDurationMs < 0 {
+		t.Errorf("MapDurationMs не может быть отрицательным, получили %d", report.MapDurationMs)
+	}
+	if report.BloomDurationMs < 0 {
+		t.Errorf("BloomDurationMs не может быть отрицательным, получили %d", report.BloomDurationMs)
 	}
 	if report.BySource == nil {
 		t.Errorf("ожидали ненулевую карту BySource")

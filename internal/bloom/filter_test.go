@@ -1,9 +1,14 @@
 package bloom
 
-import "testing"
+import (
+	"bloom-dedup-demo/internal/model"
+	"fmt"
+	"testing"
+)
 
 func TestFilterMap(t *testing.T) {
-	b, c, err := MapFilter("../../testdata/control/event.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/control/event.jsonl", true)
+	b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -13,7 +18,8 @@ func TestFilterMap(t *testing.T) {
 }
 
 func TestFilterMap1(t *testing.T) {
-	b, c, err := MapFilter("../../testdata/control/event1.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/control/event1.jsonl", true)
+	b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,7 +29,8 @@ func TestFilterMap1(t *testing.T) {
 }
 
 func TestFilterMap2(t *testing.T) {
-	b, c, err := MapFilter("../../testdata/control/event2.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/control/event2.jsonl", true)
+	b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +40,8 @@ func TestFilterMap2(t *testing.T) {
 }
 
 func TestFilterMap3(t *testing.T) {
-	b, c, err := MapFilter("../../testdata/control/event3.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/control/event3.jsonl", true)
+	b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,14 +50,31 @@ func TestFilterMap3(t *testing.T) {
 	}
 }
 
+func TestMapFilterLargeFile(t *testing.T) {
+	events, _, _, err := model.ReadEvents("../../testdata/control/event_large.jsonl", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, _, memory, err := MapFilter(events)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if memory <= 0 {
+		t.Errorf("на большом файле ожидали положительное значение памяти")
+	}
+	fmt.Println(memory)
+}
+
 func BenchmarkFilterMap(b *testing.B) {
+	events, _, _, _ := model.ReadEvents("../../testdata/control/event.jsonl", true)
 	for i := 0; i < b.N; i++ {
-		MapFilter("../../testdata/control/event.jsonl", true)
+		MapFilter(events)
 	}
 }
 
 func TestBloomFilter(t *testing.T) {
-	unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/control/event.jsonl", true)
+	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -59,7 +84,8 @@ func TestBloomFilter(t *testing.T) {
 }
 
 func TestBloomFilter1(t *testing.T) {
-	unique, duplicates, err := BloomFilter(0.1, "../../testdata/control/event1.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/control/event1.jsonl", true)
+	unique, duplicates, _, _, err := BloomFilter(events, 0.1)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -69,7 +95,8 @@ func TestBloomFilter1(t *testing.T) {
 }
 
 func TestBloomFilter2(t *testing.T) {
-	unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event2.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/control/event2.jsonl", true)
+	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -79,7 +106,8 @@ func TestBloomFilter2(t *testing.T) {
 }
 
 func TestBloomFilter3(t *testing.T) {
-	unique, duplicates, err := BloomFilter(0.01, "../../testdata/control/event3.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/control/event3.jsonl", true)
+	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
