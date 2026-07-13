@@ -72,7 +72,14 @@ func main() {
 			os.Exit(1)
 		}
 		err1 := report2.SaveJSON(*outRes, rep)
-		if err != nil {
+
+		if *report != "" {
+			err = report2.SaveJSON(*report, rep)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+			}
+		}
+		if err1 != nil {
 			fmt.Fprintln(os.Stderr, err1)
 			os.Exit(1)
 		}
