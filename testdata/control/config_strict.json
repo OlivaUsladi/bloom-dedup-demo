@@ -1,0 +1,6 @@
+{
+  "expected_items": 50000,
+  "false_positive_rate": 0.001,
+  "hash_family": "sha256_slices",
+  "mode": "counting_bloom"
+}

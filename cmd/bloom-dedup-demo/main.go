@@ -2,6 +2,7 @@ package main
 
 import (
 	"bloom-dedup-demo/internal/model"
+	report2 "bloom-dedup-demo/internal/report"
 	"flag"
 	"fmt"
 	"os"
@@ -65,6 +66,17 @@ func main() {
 		//	fmt.Fprintln(os.Stderr, "путь отчёта не должен быть пустым")
 		//	os.Exit(1)
 		//}
+		rep, err := report2.BuildReport(*in, *cfg, *sourcesBoolFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		err1 := report2.SaveJSON(*outRes, rep)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err1)
+			os.Exit(1)
+		}
+
 		fmt.Println(*in, *cfg, *outRes, *report, *sourcesBoolFlag)
 	case "bench":
 		benchCmd := flag.NewFlagSet("bench", flag.ExitOnError)

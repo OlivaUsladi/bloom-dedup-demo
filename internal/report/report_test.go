@@ -1,20 +1,13 @@
 package report
 
 import (
-	"bloom-dedup-demo/internal/model"
 	"fmt"
 	"testing"
 )
 
 func TestBuildReport(t *testing.T) {
-	cfg := &model.Config{
-		ExpectedItems:     4,
-		FalsePositiveRate: 0.01,
-		HashFamily:        "fnv64_double_hashing",
-		Mode:              "bloom",
-	}
 
-	report, err := BuildReport("../../testdata/control/event.jsonl", cfg, true)
+	report, err := BuildReport("../../testdata/control/event.jsonl", "../../testdata/control/bloom1.json", true)
 	if err != nil {
 		t.Fatalf("BuildReport вернул ошибку: %v", err)
 	}

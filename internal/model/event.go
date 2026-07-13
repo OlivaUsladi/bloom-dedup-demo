@@ -117,6 +117,8 @@ func ReadEvents(path string, fs bool) ([]Event, []int, []string, error) {
 		if fs {
 			if flag && flag1 {
 				events = append(events, event)
+			} else {
+				badLines = append(badLines, lineNum)
 			}
 		} else {
 			if !flag {

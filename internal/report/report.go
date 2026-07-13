@@ -31,7 +31,12 @@ type Report struct {
 }
 
 // Создание отчёта
-func BuildReport(path string, cfg *model.Config, strict bool) (*Report, error) {
+// Входные данные: файл с событиями, файл с конфигурацией, флаг пропуска
+func BuildReport(path string, pathcfg string, strict bool) (*Report, error) {
+	cfg, err := model.ReadConfig(pathcfg)
+	if err != nil {
+		return nil, err
+	}
 	events, badLines, badSources, err := model.ReadEvents(path, strict)
 	total := len(events)
 	if err != nil {
@@ -59,6 +64,10 @@ func BuildReport(path string, cfg *model.Config, strict bool) (*Report, error) {
 
 	invalid := uniqueStrings(badSources)
 
+	bS, err4 := BuildBySource(events, cfg.FalsePositiveRate)
+	if err4 != nil {
+		return nil, err4
+	}
 	return &Report{
 		TotalRecords:            total,
 		BadLines:                len(badLines),
@@ -72,7 +81,7 @@ func BuildReport(path string, cfg *model.Config, strict bool) (*Report, error) {
 		ExactMapMemoryBytes:     mapMemory,
 		MapDurationMs:           mapDuration,
 		BloomDurationMs:         bloomDuration,
-		BySource:                BuildBySource(events),
+		BySource:                bS,
 		InvalidSources:          invalid,
 	}, nil
 }
@@ -90,28 +99,34 @@ func uniqueStrings(in []string) []string {
 	return out
 }
 
-// пока нет bloom_may_duplicate/estimated_false_positives, надо делать вызов фильтра Блума
 // Группировка данных по источнику
-func BuildBySource(events []model.Event) map[string]SourceStats {
+func BuildBySource(events []model.Event, fPR float64) (map[string]SourceStats, error) {
 	bySource := make(map[string]SourceStats)
 	grouped := make(map[string][]model.Event)
 	for _, e := range events {
 		grouped[e.Source] = append(grouped[e.Source], e)
 	}
 	for src, evs := range grouped {
-		seen := make(map[string]bool)
-		dup := 0
-		for _, e := range evs {
-			if seen[e.EventHash] {
-				dup++
-			}
-			seen[e.EventHash] = true
+		exactUnique, exactDup, _, _, err1 := bloom.MapFilter(evs)
+		if err1 != nil {
+			return nil, err1
 		}
+		_, bloomDup, _, _, err3 := bloom.BloomFilter(evs, fPR)
+		if err3 != nil {
+			return nil, err3
+		}
+		estFP := bloomDup - exactDup
+		if estFP < 0 {
+			estFP = 0
+		}
+
 		bySource[src] = SourceStats{
-			TotalRecords:    len(evs),
-			ExactUnique:     len(seen),
-			ExactDuplicates: dup,
+			TotalRecords:            len(evs),
+			ExactUnique:             exactUnique,
+			ExactDuplicates:         exactDup,
+			BloomMayDuplicate:       bloomDup,
+			EstimatedFalsePositives: estFP,
 		}
 	}
-	return bySource
+	return bySource, nil
 }
