@@ -14,12 +14,7 @@ function Get-CheckGoCommand {
         return $go.Source
     }
 
-    $fallback = 'K:\go\go1.20.14\bin\go.exe'
-    if (Test-Path -LiteralPath $fallback) {
-        return $fallback
-    }
-
-    return 'go'
+    throw 'go executable was not found in PATH. Install Go and make sure go is available in PATH.'
 }
 
 function New-CheckContext {
@@ -488,4 +483,5 @@ Complete-Check -Ctx $ctx -Extra @{
     expected_cli = 'bloom-dedup-demo generate/run/bench'
     expected_outputs = @('generated_ids.jsonl', 'result.json', 'report.md', 'bench_output.txt')
 }
+
 
