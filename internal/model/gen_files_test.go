@@ -5,7 +5,7 @@ import (
 )
 
 func TestGenerateEvents1(t *testing.T) {
-	path := "../../testdata/control/event1.jsonl"
+	path := "../../testdata/tests/event1.jsonl"
 
 	n := 100
 	_ = GenerateEvents(path, n, 5, 0.1, 42)
@@ -26,7 +26,7 @@ func TestGenerateEvents1(t *testing.T) {
 }
 
 func TestGenerateEvents2(t *testing.T) {
-	path := "../../testdata/control/event2.jsonl"
+	path := "../../testdata/tests/event2.jsonl"
 
 	n := 50
 	_ = GenerateEvents(path, n, 1, 0.0, 7)
@@ -52,7 +52,7 @@ func TestGenerateEvents2(t *testing.T) {
 }
 
 func TestGenerateEvents3(t *testing.T) {
-	path := "../../testdata/control/event3.jsonl"
+	path := "../../testdata/tests/event3.jsonl"
 
 	n := 200
 	_ = GenerateEvents(path, n, 20, 0.5, 123)
@@ -82,7 +82,7 @@ func TestGenerateInvalidPathEvents(t *testing.T) {
 }
 
 func TestGenerateZeroNEvents(t *testing.T) {
-	path := "../../testdata/control/event7.jsonl"
+	path := "../../testdata/tests/event7.jsonl"
 	n := 0
 	err := GenerateEvents(path, n, 20, 0.5, 123)
 	if err == nil {
@@ -91,7 +91,7 @@ func TestGenerateZeroNEvents(t *testing.T) {
 }
 
 func TestGenerateInvalidRate(t *testing.T) {
-	path := "../../testdata/control/event7.jsonl"
+	path := "../../testdata/tests/event7.jsonl"
 	n := 20
 	err := GenerateEvents(path, n, 20, 1.5, 123)
 	if err == nil {

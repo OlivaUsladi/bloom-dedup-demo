@@ -5,6 +5,7 @@ output/
 result.json
 report.json
 report.md
+testdata/tests/*.json
 
 !testdata/control/demo_events.jsonl
 !testdata/control/demo_result.jsonl

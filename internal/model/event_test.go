@@ -3,7 +3,7 @@ package model
 import "testing"
 
 func TestReadEvents(t *testing.T) {
-	events, badLines, sour, err := ReadEvents("../../testdata/control/event.jsonl", true)
+	events, badLines, sour, err := ReadEvents("../../testdata/tests/event.jsonl", true)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
@@ -26,12 +26,12 @@ func TestReadEvents(t *testing.T) {
 }
 
 func TestReadBadEvents(t *testing.T) {
-	_, badLines, sour, err := ReadEvents("../../testdata/control/bad_lines.jsonl", true)
+	_, badLines, sour, err := ReadEvents("../../testdata/tests/bad_lines.jsonl", true)
 	if err != nil {
 		t.Fatalf("ReadEvents выдал ошибку: %v", err)
 	}
-	if len(badLines) != 6 {
-		t.Errorf("ожидали 6 битых строки, получили %d", len(badLines))
+	if len(badLines) != 9 {
+		t.Errorf("ожидали 9 битых строк, получили %d", len(badLines))
 	}
 	//if total != 4 {
 	//	t.Errorf("ожидали 4 валидных строк, получили %d", total)
@@ -58,7 +58,7 @@ func TestEventValidateEmptySource(t *testing.T) {
 }
 
 func TestReadEventsStrict(t *testing.T) {
-	_, _, badSrc, err := ReadEvents("../../testdata/control/mixed_sources.jsonl", true)
+	_, _, badSrc, err := ReadEvents("../../testdata/tests/mixed_sources.jsonl", true)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestReadEventsStrict(t *testing.T) {
 }
 
 func TestReadEventsNotStrict(t *testing.T) {
-	_, _, badSrc, err := ReadEvents("../../testdata/control/mixed_sources.jsonl", false)
+	_, _, badSrc, err := ReadEvents("../../testdata/tests/mixed_sources.jsonl", false)
 	if err != nil {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}

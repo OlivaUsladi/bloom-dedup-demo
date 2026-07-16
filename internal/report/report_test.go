@@ -1,13 +1,19 @@
 package report
 
 import (
+	"bloom-dedup-demo/internal/model"
 	"fmt"
 	"testing"
 )
 
 func TestBuildReport(t *testing.T) {
 
-	report, err := BuildReport("../../testdata/control/event.jsonl", "../../testdata/control/bloom1.json", true)
+	events, badLines, badSources, err := model.ReadEvents("../../testdata/tests/event.jsonl", true)
+	if err != nil {
+		t.Fatalf("ReadEvents вернул ошибку: %v", err)
+	}
+
+	report, err := BuildReport(events, badLines, badSources, "../../testdata/tests/bloom1.json", true)
 	if err != nil {
 		t.Fatalf("BuildReport вернул ошибку: %v", err)
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 func TestFilterMap(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event.jsonl", true)
 	_, b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
@@ -18,7 +18,7 @@ func TestFilterMap(t *testing.T) {
 }
 
 func TestFilterMap1(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event1.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event1.jsonl", true)
 	_, b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
@@ -29,7 +29,7 @@ func TestFilterMap1(t *testing.T) {
 }
 
 func TestFilterMap2(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event2.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event2.jsonl", true)
 	_, b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
@@ -40,7 +40,7 @@ func TestFilterMap2(t *testing.T) {
 }
 
 func TestFilterMap3(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event3.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event3.jsonl", true)
 	_, b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
@@ -51,7 +51,7 @@ func TestFilterMap3(t *testing.T) {
 }
 
 func TestMapFilterLargeFile(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event_large.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event_large.jsonl", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,14 +66,14 @@ func TestMapFilterLargeFile(t *testing.T) {
 }
 
 func BenchmarkFilterMap(b *testing.B) {
-	events, _, _, _ := model.ReadEvents("../../testdata/control/event.jsonl", true)
+	events, _, _, _ := model.ReadEvents("../../testdata/tests/event.jsonl", true)
 	for i := 0; i < b.N; i++ {
 		MapFilter(events)
 	}
 }
 
 func TestBloomFilter(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event.jsonl", true)
 	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
@@ -84,7 +84,7 @@ func TestBloomFilter(t *testing.T) {
 }
 
 func TestBloomFilter1(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event1.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event1.jsonl", true)
 	unique, duplicates, _, _, err := BloomFilter(events, 0.1)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
@@ -95,7 +95,7 @@ func TestBloomFilter1(t *testing.T) {
 }
 
 func TestBloomFilter2(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event2.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event2.jsonl", true)
 	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
@@ -106,7 +106,7 @@ func TestBloomFilter2(t *testing.T) {
 }
 
 func TestBloomFilter3(t *testing.T) {
-	events, _, _, err := model.ReadEvents("../../testdata/control/event3.jsonl", true)
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event3.jsonl", true)
 	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
