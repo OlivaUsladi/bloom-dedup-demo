@@ -1,0 +1,38 @@
+{
+ "total_records": 30,
+ "bad_lines": 0,
+ "exact_unique": 22,
+ "exact_duplicates": 8,
+ "bloom_new": 21,
+ "bloom_may_duplicate": 9,
+ "estimated_false_positives": 1,
+ "real_false_positive_rate": 0.045454545454545456,
+ "bloom_memory_bytes": 36,
+ "exact_map_memory_bytes": 6984,
+ "map_duration_ms": 0,
+ "bloom_duration_ms": 0,
+ "by_source": {
+  "collector_01": {
+   "total_records": 13,
+   "exact_unique": 11,
+   "exact_duplicates": 2,
+   "bloom_may_duplicate": 2,
+   "estimated_false_positives": 0
+  },
+  "collector_02": {
+   "total_records": 6,
+   "exact_unique": 5,
+   "exact_duplicates": 1,
+   "bloom_may_duplicate": 1,
+   "estimated_false_positives": 0
+  },
+  "collector_03": {
+   "total_records": 11,
+   "exact_unique": 10,
+   "exact_duplicates": 1,
+   "bloom_may_duplicate": 1,
+   "estimated_false_positives": 0
+  }
+ },
+ "invalid_sources": []
+}

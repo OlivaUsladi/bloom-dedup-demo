@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bloom-dedup-demo/internal/bloom"
 	"bloom-dedup-demo/internal/model"
 	report2 "bloom-dedup-demo/internal/report"
 	"flag"
@@ -39,15 +40,20 @@ func main() {
 			fmt.Fprintln(os.Stderr, "источники должны быть от 1 до 100")
 			os.Exit(1)
 		}
-		fmt.Println(*countFlag, *duplicateRatioFlag, *outFlag, *seedFlag, *sourcesFlag)
-		model.GenerateEvents(*outFlag, *countFlag, *sourcesFlag, *duplicateRatioFlag, *seedFlag)
+		//fmt.Println(*countFlag, *duplicateRatioFlag, *outFlag, *seedFlag, *sourcesFlag)
+		err := model.GenerateEvents(*outFlag, *countFlag, *sourcesFlag, *duplicateRatioFlag, *seedFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 
 	case "run":
 		runCmd := flag.NewFlagSet("run", flag.ExitOnError)
 		in := runCmd.String("in", "", "входной файл")
 		cfg := runCmd.String("config", "", "файл конфигурации")
 		outRes := runCmd.String("out", "", "файл результата")
-		report := runCmd.String("report", "", "markdown отчёт")
+		reportFile := runCmd.String("report", "", "файл JSON-отчёта")
+		//reportMdFile := runCmd.String("report-md", "", "файл Markdown-отчёта")
 		sourcesBoolFlag := runCmd.Bool("fls", true, "флаг пропуска событий с невалидными источником и датой (true - пропуск)")
 		runCmd.Parse(os.Args[2:])
 		if *in == "" {
@@ -62,29 +68,38 @@ func main() {
 			fmt.Fprintln(os.Stderr, " путь выходного файла не может быть пустым")
 			os.Exit(1)
 		}
-		//if *report != "" {
-		//	fmt.Fprintln(os.Stderr, "путь отчёта не должен быть пустым")
-		//	os.Exit(1)
-		//}
-		rep, err := report2.BuildReport(*in, *cfg, *sourcesBoolFlag)
+		if *reportFile == "" {
+			fmt.Fprintln(os.Stderr, "путь отчёта не должен быть пустым")
+			os.Exit(1)
+		}
+		events, badLines, badSources, err := model.ReadEvents(*in, *sourcesBoolFlag)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		err1 := report2.SaveJSON(*outRes, rep)
-
-		if *report != "" {
-			err = report2.SaveJSON(*report, rep)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-			}
+		eventResult, _, _, _, _, err := bloom.MapFilter(events)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
-		if err1 != nil {
-			fmt.Fprintln(os.Stderr, err1)
+		err = report2.WriteEvents(*outRes, eventResult)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
-		fmt.Println(*in, *cfg, *outRes, *report, *sourcesBoolFlag)
+		rep, err := report2.BuildReport(events, badLines, badSources, *cfg, *sourcesBoolFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		err = report2.SaveJSON(*reportFile, rep)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		//fmt.Println(*in, *cfg, *outRes, *reportFile, *sourcesBoolFlag)
 	case "bench":
 		benchCmd := flag.NewFlagSet("bench", flag.ExitOnError)
 		in := benchCmd.String("in", "", "входной файл")

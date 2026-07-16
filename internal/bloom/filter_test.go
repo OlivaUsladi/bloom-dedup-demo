@@ -8,7 +8,7 @@ import (
 
 func TestFilterMap(t *testing.T) {
 	events, _, _, err := model.ReadEvents("../../testdata/control/event.jsonl", true)
-	b, c, _, _, err := MapFilter(events)
+	_, b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -19,7 +19,7 @@ func TestFilterMap(t *testing.T) {
 
 func TestFilterMap1(t *testing.T) {
 	events, _, _, err := model.ReadEvents("../../testdata/control/event1.jsonl", true)
-	b, c, _, _, err := MapFilter(events)
+	_, b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func TestFilterMap1(t *testing.T) {
 
 func TestFilterMap2(t *testing.T) {
 	events, _, _, err := model.ReadEvents("../../testdata/control/event2.jsonl", true)
-	b, c, _, _, err := MapFilter(events)
+	_, b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestFilterMap2(t *testing.T) {
 
 func TestFilterMap3(t *testing.T) {
 	events, _, _, err := model.ReadEvents("../../testdata/control/event3.jsonl", true)
-	b, c, _, _, err := MapFilter(events)
+	_, b, c, _, _, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func TestMapFilterLargeFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, _, memory, err := MapFilter(events)
+	_, _, _, _, memory, err := MapFilter(events)
 	if err != nil {
 		t.Fatal(err)
 	}

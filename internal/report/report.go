@@ -3,6 +3,10 @@ package report
 import (
 	"bloom-dedup-demo/internal/bloom"
 	"bloom-dedup-demo/internal/model"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
 )
 
 type SourceStats struct {
@@ -31,19 +35,15 @@ type Report struct {
 }
 
 // Создание отчёта
-// Входные данные: файл с событиями, файл с конфигурацией, флаг пропуска
-func BuildReport(path string, pathcfg string, strict bool) (*Report, error) {
+// Входные данные: события, плохие строки, плохие источники, файл с конфигурацией, флаг пропуска
+func BuildReport(events []model.Event, badLines []int, badSources []string, pathcfg string, strict bool) (*Report, error) {
 	cfg, err := model.ReadConfig(pathcfg)
 	if err != nil {
 		return nil, err
 	}
-	events, badLines, badSources, err := model.ReadEvents(path, strict)
 	total := len(events)
-	if err != nil {
-		return nil, err
-	}
 
-	exactUnique, exactDup, mapDuration, mapMemory, err1 := bloom.MapFilter(events)
+	_, exactUnique, exactDup, mapDuration, mapMemory, err1 := bloom.MapFilter(events)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -107,7 +107,7 @@ func BuildBySource(events []model.Event, fPR float64) (map[string]SourceStats, e
 		grouped[e.Source] = append(grouped[e.Source], e)
 	}
 	for src, evs := range grouped {
-		exactUnique, exactDup, _, _, err1 := bloom.MapFilter(evs)
+		_, exactUnique, exactDup, _, _, err1 := bloom.MapFilter(evs)
 		if err1 != nil {
 			return nil, err1
 		}
@@ -129,4 +129,20 @@ func BuildBySource(events []model.Event, fPR float64) (map[string]SourceStats, e
 		}
 	}
 	return bySource, nil
+}
+
+func SaveJSON(path string, report *Report) error {
+	byteValue, err := json.MarshalIndent(report, "", " ")
+	if err != nil {
+		return fmt.Errorf("не удалось сериализовать отчёт: %w", err)
+	}
+	err = os.MkdirAll(filepath.Dir(path), 0755)
+	if err != nil {
+		return fmt.Errorf("не удалось создать директорию для %s: %w", path, err)
+	}
+	err = os.WriteFile(path, byteValue, 0644)
+	if err != nil {
+		return fmt.Errorf("не удалось записать файл %s: %w", path, err)
+	}
+	return nil
 }

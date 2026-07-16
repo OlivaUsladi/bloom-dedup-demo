@@ -5,18 +5,20 @@ import (
 	"bloom-dedup-demo/internal/model"
 	"hash/fnv"
 	"runtime"
+	"sort"
 	"time"
 )
 
 // Точная дедупликация событий через map
-// Возвращает unique, duplicates, durationMs, memoryBytes, error
-func MapFilter(events []model.Event) (int, int, int64, int, error) {
+// Возвращает events, unique, duplicates, durationMs, memoryBytes, error
+func MapFilter(events []model.Event) ([]model.Event, int, int, int64, int, error) {
 	var m1, m2 runtime.MemStats
 	runtime.GC()
 	runtime.ReadMemStats(&m1)
 	start := time.Now()
 	total := len(events)
 	eventsMap := make(map[string]model.Event)
+	result := make([]model.Event, 0, total)
 	//events, _, total, _, err := model.ReadEvents(path, fs)
 	//if err != nil {
 	//	return 0, 0, 0, 0, err
@@ -32,7 +34,13 @@ func MapFilter(events []model.Event) (int, int, int64, int, error) {
 	if memory == 0 {
 		memory = estimateMapMemory(eventsMap)
 	}
-	return unique, duplicates, duration, memory, nil
+	for _, event := range eventsMap {
+		result = append(result, event)
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Seq < result[j].Seq
+	})
+	return result, unique, duplicates, duration, memory, nil
 }
 
 // Рассчёт оценки map в байтах (примерное значение)

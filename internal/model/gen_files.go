@@ -88,17 +88,14 @@ func GenerateEvents(path string, n int, s int, duble float64, seed int64) error 
 
 		data, err := json.Marshal(event)
 		if err != nil {
-			fmt.Println("Ошибка преобразования (marshal):", err)
+			fmt.Fprintln(os.Stderr, "ошибка преобразования (marshal):", err)
 			continue
 		}
-
-		_, err = writer.Write(data)
-		if err != nil {
-			fmt.Println("Ошибка записи:", err)
+		if _, err := writer.Write(data); err != nil {
+			return fmt.Errorf("ошибка записи события: %w", err)
 		}
-		err = writer.WriteByte('\n')
-		if err != nil {
-			fmt.Println("Ошибка перевода строки:", err)
+		if err := writer.WriteByte('\n'); err != nil {
+			return fmt.Errorf("ошибка записи перевода строки: %w", err)
 		}
 	}
 
