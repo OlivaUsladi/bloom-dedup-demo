@@ -1,18 +1,21 @@
 .PHONY: build test bench demo clean
 
-APP=C:\Users\Alexandra\GolandProjects\bloom-dedup-demo\cmd\bloom-dedup-demo\bloom-dedup-demo.exe
-ROOT=C:\Users\Alexandra\GolandProjects\bloom-dedup-demo
-CONTROL=C:\Users\Alexandra\GolandProjects\bloom-dedup-demo\testdata\control
-OUTPUT=C:\Users\Alexandra\GolandProjects\bloom-dedup-demo\output
+BINARY := cmd/bloom-dedup-demo/bloom-dedup-demo.exe
+CONTROL := testdata/control
+OUTPUT := output
 
-#build:
-#	...
+build:
+	go build -o $(BINARY) ./cmd/bloom-dedup-demo
 
-#test:
-#	...
+test:
+	go test ./...
 
-#bench:
-#	...
+bench:
+	go test -bench=. ./...
 
-demo:
-	$(APP) run --in $(CONTROL)\demo_events.jsonl --config $(CONTROL)\demo_config.json --out $(OUTPUT)\demo_result.jsonl --report $(OUTPUT)\demo_report.json
+demo: build
+	$(BINARY) run --in $(CONTROL)/demo_events.jsonl --config $(CONTROL)/demo_config.json --out $(OUTPUT)/demo_result.jsonl --report $(OUTPUT)/demo_report.json
+
+clean:
+	@if exist "$(BINARY)" del "$(BINARY)"
+
