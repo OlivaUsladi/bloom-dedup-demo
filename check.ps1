@@ -297,11 +297,17 @@ function Add-StandardEngineeringAssessments {
     if ($Ctx.CommandResults.ContainsKey('go_test_all')) {
         Add-CommandFeatureAssessment -Ctx $Ctx -Id 'engineering.go_test_passes' -Level 'engineering' -Category 'tests' -Requirement 'go test ./... passes' -CommandName 'go_test_all'
     }
-    if ($Ctx.CommandResults.ContainsKey('go_test_bench')) {
-        Add-CommandFeatureAssessment -Ctx $Ctx -Id 'engineering.benchmarks_run' -Level 'engineering' -Category 'benchmarks' -Requirement 'Benchmark tests run' -CommandName 'go_test_bench'
-    }
     if ($Ctx.CommandResults.ContainsKey('go_test_race')) {
         Add-CommandFeatureAssessment -Ctx $Ctx -Id 'engineering.race_test_passes' -Level 'engineering' -Category 'tests' -Requirement 'go test -race ./... passes' -CommandName 'go_test_race'
+    }
+    if ($Ctx.CommandResults.ContainsKey('make_test')) {
+        Add-CommandFeatureAssessment -Ctx $Ctx -Id 'engineering.make_test_runs' -Level 'engineering' -Category 'reproducibility' -Requirement 'make test passes' -CommandName 'make_test'
+    }
+    if ($Ctx.CommandResults.ContainsKey('make_bench')) {
+        Add-CommandFeatureAssessment -Ctx $Ctx -Id 'engineering.make_bench_runs' -Level 'engineering' -Category 'reproducibility' -Requirement 'make bench passes' -CommandName 'make_bench'
+    }
+    if ($Ctx.CommandResults.ContainsKey('make_demo')) {
+        Add-CommandFeatureAssessment -Ctx $Ctx -Id 'engineering.make_demo_runs' -Level 'engineering' -Category 'reproducibility' -Requirement 'make demo passes' -CommandName 'make_demo'
     }
 
     $readmePath = Join-Path $Ctx.RepoRoot 'README.md'
@@ -431,7 +437,6 @@ $configPath = Write-CheckText -Ctx $ctx -RelativePath 'inputs/bloom.json' -Conte
 '@
 
 Invoke-CheckCommand -Ctx $ctx -Name 'go_test_all' -Command "& '$($ctx.GoCmd)' test ./..."
-Invoke-CheckCommand -Ctx $ctx -Name 'go_test_bench' -Command "& '$($ctx.GoCmd)' test -bench=. ./..."
 
 if (Test-Path -LiteralPath (Join-Path $ctx.RepoRoot 'Makefile')) {
     Invoke-CheckCommand -Ctx $ctx -Name 'make_test' -Command 'make test'
@@ -468,7 +473,7 @@ Add-CommandFeatureAssessment -Ctx $ctx -Id 'minimum.json_report' -Level 'minimum
 Add-SourceFeatureAssessment -Ctx $ctx -Id 'minimum.bit_hash_tests' -Level 'minimum' -Category 'tests' -Requirement 'Bit array and hash unit tests exist' -Patterns @('Test.*Bit','Test.*Hash') -Match 'all'
 
 Add-CommandFeatureAssessment -Ctx $ctx -Id 'good.markdown_report' -Level 'good' -Category 'format' -Requirement 'Markdown report' -CommandName 'cli_run_json_and_report' -RequiredArtifacts @($mdReport)
-Add-CommandFeatureAssessment -Ctx $ctx -Id 'good.benchmarks' -Level 'good' -Category 'performance' -Requirement 'Key benchmarks run' -CommandName 'go_test_bench'
+Add-CommandFeatureAssessment -Ctx $ctx -Id 'good.benchmarks' -Level 'good' -Category 'performance' -Requirement 'make bench runs key benchmarks' -CommandName 'make_bench'
 Add-SourceFeatureAssessment -Ctx $ctx -Id 'good.memory_comparison' -Level 'good' -Category 'performance' -Requirement 'Bloom and map memory comparison' -Patterns @('bloom_memory_bytes','exact_map_memory_bytes') -Match 'all'
 Add-SourceFeatureAssessment -Ctx $ctx -Id 'good.parameter_tests' -Level 'good' -Category 'tests' -Requirement 'Parameter tests cover several FPR values' -Patterns @('false_positive_rate','Test.*Param|Test.*Calc') -Match 'all'
 Add-SourceFeatureAssessment -Ctx $ctx -Id 'good.source_statistics' -Level 'good' -Category 'format' -Requirement 'by_source and invalid_sources statistics' -Patterns @('by_source|BySource','invalid_sources|InvalidSources') -Match 'all'
