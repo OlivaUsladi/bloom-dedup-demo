@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // Запись дедуплицированных событий в файл
@@ -13,11 +14,14 @@ func WriteEvents(path string, events []model.Event) error {
 	if path == "" {
 		return fmt.Errorf("неправильный аргумент path")
 	}
+	err := os.MkdirAll(filepath.Dir(path), 0755)
+	if err != nil {
+		return fmt.Errorf("не удалось создать директорию для %s: %w", path, err)
+	}
 	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("не удалось создать файл %s: %w", path, err)
 	}
-	defer file.Close()
 	writer := bufio.NewWriter(file)
 
 	for _, event := range events {
@@ -35,6 +39,10 @@ func WriteEvents(path string, events []model.Event) error {
 	}
 	if err := writer.Flush(); err != nil {
 		return fmt.Errorf("ошибка записи в файл: %w", err)
+	}
+	err1 := file.Close()
+	if err1 != nil {
+		return fmt.Errorf("ошибка закрытия файла: %w", err1)
 	}
 	return nil
 }

@@ -10,12 +10,11 @@ build:
 test:
 	go test ./...
 
-bench:
-	go test -bench=. ./...
+bench: build
+	$(BINARY) bench --in $(CONTROL)/demo_events.jsonl --config $(CONTROL)/demo_config.json
 
 demo: build
-	$(BINARY) run --in $(CONTROL)/demo_events.jsonl --config $(CONTROL)/demo_config.json --out $(OUTPUT)/demo_result.jsonl --report $(OUTPUT)/demo_report.json
-
+	$(BINARY) run --in $(CONTROL)/demo_events.jsonl --config $(CONTROL)/demo_config.json --out $(OUTPUT)/demo_result.jsonl --report $(OUTPUT)/demo_report.md
 clean:
 	@if exist "$(BINARY)" del "$(BINARY)"
 

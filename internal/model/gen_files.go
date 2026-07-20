@@ -38,7 +38,6 @@ func GenerateEvents(path string, n int, s int, duble float64, seed int64) error 
 	if err != nil {
 		return fmt.Errorf("не удалось создать файл %s: %w", path, err)
 	}
-	defer file.Close()
 	writer := bufio.NewWriter(file)
 
 	r := rand.New(rand.NewSource(seed))
@@ -101,6 +100,10 @@ func GenerateEvents(path string, n int, s int, duble float64, seed int64) error 
 
 	if err := writer.Flush(); err != nil {
 		return fmt.Errorf("ошибка записи в файл: %w", err)
+	}
+	err1 := file.Close()
+	if err1 != nil {
+		return fmt.Errorf("ошибка закрытия файла: %w", err1)
 	}
 	return nil
 }

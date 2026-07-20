@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 		fmt.Println("нужна подкоманда: generate, run или bench")
 		os.Exit(1)
 	}
-	fmt.Println(os.Args[1])
+	//fmt.Println(os.Args[1])
 	switch os.Args[1] {
 	case "generate":
 		genCmd := flag.NewFlagSet("generate", flag.ExitOnError)
@@ -52,7 +53,7 @@ func main() {
 		in := runCmd.String("in", "", "входной файл")
 		cfg := runCmd.String("config", "", "файл конфигурации")
 		outRes := runCmd.String("out", "", "файл результата")
-		reportFile := runCmd.String("report", "", "файл JSON-отчёта")
+		reportFile := runCmd.String("report", "", "файл JSON или MD отчёта")
 		//reportMdFile := runCmd.String("report-md", "", "файл Markdown-отчёта")
 		sourcesBoolFlag := runCmd.Bool("fls", true, "флаг пропуска событий с невалидными источником и датой (true - пропуск)")
 		runCmd.Parse(os.Args[2:])
@@ -93,9 +94,20 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		err = report2.SaveJSON(*reportFile, rep)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		if filepath.Ext(*reportFile) == ".json" {
+			err = report2.SaveJSON(*reportFile, rep)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+		} else if filepath.Ext(*reportFile) == ".md" {
+			err = report2.SaveMarkdown(*reportFile, rep)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+		} else {
+			fmt.Fprintln(os.Stderr, "поддерживаются файлы с расширением json и md")
 			os.Exit(1)
 		}
 
@@ -115,7 +127,65 @@ func main() {
 			fmt.Fprintln(os.Stderr, "путь файла конфигурации не должен быть пустым")
 			os.Exit(1)
 		}
-		fmt.Println(*in, *cfg, *sourcesBoolFlag)
+		//fmt.Println(*in, *cfg, *sourcesBoolFlag)
+		events, badLines, badSources, err := model.ReadEvents(*in, *sourcesBoolFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		rep, err := report2.BuildReport(events, badLines, badSources, *cfg, *sourcesBoolFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		bloomMiB := float64(rep.BloomMemoryBytes) / 1024.0 / 1024.0
+		exactMiB := float64(rep.ExactMapMemoryBytes) / 1024.0 / 1024.0
+
+		memoryRatio := 0.0
+		if rep.BloomMemoryBytes > 0 {
+			memoryRatio = float64(rep.ExactMapMemoryBytes) / float64(rep.BloomMemoryBytes)
+		}
+		speedRatio := 0.0
+		if rep.BloomDurationMs > 0 {
+			speedRatio = float64(rep.MapDurationMs) / float64(rep.BloomDurationMs)
+		}
+
+		mapLinesPerSec := 0.0
+		if rep.MapDurationMs > 0 {
+			mapLinesPerSec = float64(rep.TotalRecords) * 1000.0 / float64(rep.MapDurationMs)
+		}
+
+		bloomLinesPerSec := 0.0
+		if rep.BloomDurationMs > 0 {
+			bloomLinesPerSec = float64(rep.TotalRecords) * 1000.0 / float64(rep.BloomDurationMs)
+		}
+
+		fmt.Println("--- BENCH ---")
+		fmt.Println()
+
+		fmt.Printf("%-28s %s\n", "Входной файл:", *in)
+		fmt.Printf("%-28s %s\n", "Файл конфигурации:", *cfg)
+		fmt.Printf("%-28s %t\n", "Флаг пропуска:", *sourcesBoolFlag)
+		fmt.Println()
+
+		fmt.Println("--- Метрики ---")
+		fmt.Println()
+		fmt.Printf("%-40s %-18s %-18s\n", "Метрика", "Точное сравнение", "Фильтр Блума")
+		fmt.Printf("%-40s %-18s %-18s\n", "----------------------------------------", "------------------", "------------------")
+		fmt.Printf("%-40s %-18d %-18d\n", "Уникальные", rep.ExactUnique, rep.BloomNew)
+		fmt.Printf("%-40s %-18d %-18d\n", "Дубликаты", rep.ExactDuplicates, rep.BloomMayDuplicate)
+		fmt.Printf("%-40s %-18d %-18d\n", "Ложные срабатывания", 0, rep.EstimatedFalsePositives)
+		fmt.Printf("%-40s %-18.10f %-18.10f\n", "Ложное срабатывание rate", 0.0, rep.RealFalsePositiveRate)
+		fmt.Printf("%-40s %-18d %-18d\n", "Память, байт", rep.ExactMapMemoryBytes, rep.BloomMemoryBytes)
+		fmt.Printf("%-40s %-18.2f %-18.2f\n", "Память, Мб", exactMiB, bloomMiB)
+		fmt.Printf("%-40s %-18d %-18d\n", "Время, мс", rep.MapDurationMs, rep.BloomDurationMs)
+		fmt.Printf("%-40s %-18.2f %-18.2f\n", "Строк в секунду", mapLinesPerSec, bloomLinesPerSec)
+		fmt.Println()
+
+		fmt.Printf("%-40s %.2f раза\n", "Превышение памяти map над bloom:", memoryRatio)
+		fmt.Printf("%-40s %.2f раза\n", "Замедление map относительно bloom:", speedRatio)
+
 	default:
 		fmt.Println("неизвестная подкоманда:", os.Args[1])
 		os.Exit(1)
