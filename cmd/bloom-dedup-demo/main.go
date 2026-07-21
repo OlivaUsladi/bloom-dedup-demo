@@ -89,7 +89,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		rep, err := report2.BuildReport(events, badLines, badSources, *cfg, *sourcesBoolFlag)
+		rep, err := report2.BuildReport(events, badLines, badSources, *cfg)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -134,7 +134,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		rep, err := report2.BuildReport(events, badLines, badSources, *cfg, *sourcesBoolFlag)
+		rep, err := report2.BuildReport(events, badLines, badSources, *cfg)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)

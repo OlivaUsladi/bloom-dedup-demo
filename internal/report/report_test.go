@@ -13,7 +13,7 @@ func TestBuildReport(t *testing.T) {
 		t.Fatalf("ReadEvents вернул ошибку: %v", err)
 	}
 
-	report, err := BuildReport(events, badLines, badSources, "../../testdata/tests/bloom1.json", true)
+	report, err := BuildReport(events, badLines, badSources, "../../testdata/tests/bloom1.json")
 	if err != nil {
 		t.Fatalf("BuildReport вернул ошибку: %v", err)
 	}
@@ -46,4 +46,39 @@ func TestBuildReport(t *testing.T) {
 		t.Errorf("ожидали ненулевой срез InvalidSources")
 	}
 	fmt.Println(report)
+}
+
+func TestBuildReportCountingBloom(t *testing.T) {
+	events, badLines, badSources, err := model.ReadEvents("../../testdata/tests/event3.jsonl", true)
+	if err != nil {
+		t.Fatalf("ReadEvents вернул ошибку: %v", err)
+	}
+
+	report, err := BuildReport(events, badLines, badSources, "../../testdata/tests/bloom_counting.json")
+	if err != nil {
+		t.Fatalf("BuildReport вернул ошибку: %v", err)
+	}
+
+	if report.TotalRecords != 200 {
+		t.Errorf("ожидали TotalRecords=200, получили %d", report.TotalRecords)
+	}
+	if report.BadLines != 0 {
+		t.Errorf("ожидали BadLines=0, получили %d", report.BadLines)
+	}
+	if report.ExactUnique != 101 {
+		t.Errorf("ожидали ExactUnique=101, получили %d", report.ExactUnique)
+	}
+	if report.ExactDuplicates != 99 {
+		t.Errorf("ожидали ExactDuplicates=99, получили %d", report.ExactDuplicates)
+	}
+	if report.BloomNew+report.BloomMayDuplicate != report.TotalRecords {
+		t.Errorf("ожидали %d, получили %d + %d",
+			report.TotalRecords, report.BloomNew, report.BloomMayDuplicate)
+	}
+	if report.BloomMemoryBytes <= 0 {
+		t.Errorf("ожидали положительный BloomMemoryBytes, получили %d", report.BloomMemoryBytes)
+	}
+	if report.BySource == nil {
+		t.Errorf("ожидали ненулевую карту BySource")
+	}
 }

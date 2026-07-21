@@ -3,6 +3,8 @@ package bloom
 import (
 	"bloom-dedup-demo/internal/bitset"
 	"bloom-dedup-demo/internal/model"
+	"crypto/sha256"
+	"encoding/binary"
 	"hash/fnv"
 	"runtime"
 	"sort"
@@ -81,16 +83,27 @@ func getIndexes(key string, k int, m uint64) []uint64 {
 	return indexes
 }
 
+func getIndexesSHA256(key string, k int, m uint64) []uint64 {
+	sum := sha256.Sum256([]byte(key))
+	indexes := make([]uint64, k)
+	for i := 0; i < k; i++ {
+		offset := (i * 4) % 29
+		v := binary.BigEndian.Uint32(sum[offset : offset+4])
+		indexes[i] = uint64(v) % m
+	}
+	return indexes
+}
+
 // Фильтр Блума
 // Возвращает unique, duplicates, durationMs, memoryBytes, error
-func BloomFilter(events []model.Event, p float64) (int, int, int64, int, error) {
+func BloomFilter(events []model.Event, expectedItems int, hash string, p float64) (int, int, int64, int, error) {
 	start := time.Now()
 	//events, _, total, _, err2 := model.ReadEvents(path, fs)
 	//if err2 != nil {
 	//	return 0, 0, err2
 	//}
 	total := len(events)
-	m, k, err1 := Params(total, p)
+	m, k, err1 := Params(expectedItems, p)
 	if err1 != nil {
 		return 0, 0, 0, 0, err1
 	}
@@ -101,7 +114,12 @@ func BloomFilter(events []model.Event, p float64) (int, int, int64, int, error) 
 	duplicates := 0
 
 	for _, event := range events {
-		indexes := getIndexes(event.EventHash, k, uint64(m))
+		var indexes []uint64
+		if hash == "fnv64_double_hashing" {
+			indexes = getIndexes(event.EventHash, k, uint64(m))
+		} else {
+			indexes = getIndexesSHA256(event.EventHash, k, uint64(m))
+		}
 		alreadySet := true
 		for _, idx := range indexes {
 			if !bs.Get(uint(idx)) {
@@ -116,6 +134,44 @@ func BloomFilter(events []model.Event, p float64) (int, int, int64, int, error) 
 	unique := total - duplicates
 	duration := time.Since(start).Milliseconds()
 	memory := (m + 7) / 8
+
+	return unique, duplicates, duration, memory, nil
+}
+
+func CountingBloomFilter(events []model.Event, expectedItems int, hash string, p float64) (int, int, int64, int, error) {
+	start := time.Now()
+	total := len(events)
+	m, k, err1 := Params(expectedItems, p)
+	if err1 != nil {
+		return 0, 0, 0, 0, err1
+	}
+	counters := make([]uint16, m)
+	duplicates := 0
+	for _, event := range events {
+		var indexes []uint64
+		if hash == "fnv64_double_hashing" {
+			indexes = getIndexes(event.EventHash, k, uint64(m))
+		} else {
+			indexes = getIndexesSHA256(event.EventHash, k, uint64(m))
+		}
+		flag := true
+		for _, idx := range indexes {
+			if counters[idx] == 0 {
+				flag = false
+				break
+			}
+		}
+		if flag {
+			duplicates++
+		}
+		for _, idx := range indexes {
+			counters[idx]++
+		}
+
+	}
+	unique := total - duplicates
+	duration := time.Since(start).Milliseconds()
+	memory := len(counters) * 2
 
 	return unique, duplicates, duration, memory, nil
 }

@@ -74,7 +74,7 @@ func BenchmarkFilterMap(b *testing.B) {
 
 func TestBloomFilter(t *testing.T) {
 	events, _, _, err := model.ReadEvents("../../testdata/tests/event.jsonl", true)
-	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
+	unique, duplicates, _, _, err := BloomFilter(events, 5, "fnv64_double_hashing", 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestBloomFilter(t *testing.T) {
 
 func TestBloomFilter1(t *testing.T) {
 	events, _, _, err := model.ReadEvents("../../testdata/tests/event1.jsonl", true)
-	unique, duplicates, _, _, err := BloomFilter(events, 0.1)
+	unique, duplicates, _, _, err := BloomFilter(events, 100, "fnv64_double_hashing", 0.1)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestBloomFilter1(t *testing.T) {
 
 func TestBloomFilter2(t *testing.T) {
 	events, _, _, err := model.ReadEvents("../../testdata/tests/event2.jsonl", true)
-	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
+	unique, duplicates, _, _, err := BloomFilter(events, 50, "fnv64_double_hashing", 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -107,11 +107,40 @@ func TestBloomFilter2(t *testing.T) {
 
 func TestBloomFilter3(t *testing.T) {
 	events, _, _, err := model.ReadEvents("../../testdata/tests/event3.jsonl", true)
-	unique, duplicates, _, _, err := BloomFilter(events, 0.01)
+	unique, duplicates, _, _, err := BloomFilter(events, 200, "fnv64_double_hashing", 0.01)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 	if unique != 101 || duplicates != 99 {
 		t.Errorf("ожидалось unique=101, duplicates=99, получено unique=%v, duplicates=%v", unique, duplicates)
+	}
+}
+
+func TestBloomFilterSHA256(t *testing.T) {
+	events, _, _, err := model.ReadEvents("../../testdata/control/demo_events.jsonl", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := model.ReadConfig("../../testdata/tests/conf_sha256.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	unique, duplicates, _, memory, err := BloomFilter(events, cfg.ExpectedItems, cfg.HashFamily, cfg.FalsePositiveRate)
+	if err != nil {
+		t.Fatalf("ошибка: %v", err)
+	}
+
+	if unique+duplicates != len(events) {
+		t.Errorf("ожидалось unique + duplicates = %d, получено %d", len(events), unique+duplicates)
+	}
+	if unique <= 0 {
+		t.Errorf("ожидалось положительное число unique, получено %d", unique)
+	}
+	if duplicates < 0 {
+		t.Errorf("ожидалось неотрицательное число duplicates, получено %d", duplicates)
+	}
+	if memory <= 0 {
+		t.Errorf("ожидалось положительное значение памяти, получено %d", memory)
 	}
 }

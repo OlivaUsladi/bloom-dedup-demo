@@ -36,7 +36,7 @@ type Report struct {
 
 // Создание отчёта
 // Входные данные: события, плохие строки, плохие источники, файл с конфигурацией, флаг пропуска
-func BuildReport(events []model.Event, badLines []int, badSources []string, pathcfg string, strict bool) (*Report, error) {
+func BuildReport(events []model.Event, badLines []int, badSources []string, pathcfg string) (*Report, error) {
 	cfg, err := model.ReadConfig(pathcfg)
 	if err != nil {
 		return nil, err
@@ -47,8 +47,14 @@ func BuildReport(events []model.Event, badLines []int, badSources []string, path
 	if err1 != nil {
 		return nil, err1
 	}
-
-	bloomNew, bloomDup, bloomDuration, bloomMemory, err3 := bloom.BloomFilter(events, cfg.FalsePositiveRate)
+	var bloomNew, bloomDup, bloomMemory int
+	var bloomDuration int64
+	var err3 error
+	if cfg.Mode == "bloom" {
+		bloomNew, bloomDup, bloomDuration, bloomMemory, err3 = bloom.BloomFilter(events, cfg.ExpectedItems, cfg.HashFamily, cfg.FalsePositiveRate)
+	} else {
+		bloomNew, bloomDup, bloomDuration, bloomMemory, err3 = bloom.CountingBloomFilter(events, cfg.ExpectedItems, cfg.HashFamily, cfg.FalsePositiveRate)
+	}
 	if err3 != nil {
 		return nil, err3
 	}
@@ -64,7 +70,7 @@ func BuildReport(events []model.Event, badLines []int, badSources []string, path
 
 	invalid := uniqueStrings(badSources)
 
-	bS, err4 := BuildBySource(events, cfg.FalsePositiveRate)
+	bS, err4 := BuildBySource(events, cfg.HashFamily, cfg.Mode, cfg.FalsePositiveRate)
 	if err4 != nil {
 		return nil, err4
 	}
@@ -100,7 +106,7 @@ func uniqueStrings(in []string) []string {
 }
 
 // Группировка данных по источнику
-func BuildBySource(events []model.Event, fPR float64) (map[string]SourceStats, error) {
+func BuildBySource(events []model.Event, hash string, mode string, fPR float64) (map[string]SourceStats, error) {
 	bySource := make(map[string]SourceStats)
 	grouped := make(map[string][]model.Event)
 	for _, e := range events {
@@ -111,9 +117,17 @@ func BuildBySource(events []model.Event, fPR float64) (map[string]SourceStats, e
 		if err1 != nil {
 			return nil, err1
 		}
-		_, bloomDup, _, _, err3 := bloom.BloomFilter(evs, fPR)
-		if err3 != nil {
-			return nil, err3
+		var bloomDup int
+		if mode == "bloom" {
+			_, bloomDup, _, _, err1 = bloom.BloomFilter(evs, len(evs), hash, fPR)
+			if err1 != nil {
+				return nil, err1
+			}
+		} else {
+			_, bloomDup, _, _, err1 = bloom.CountingBloomFilter(evs, len(evs), hash, fPR)
+			if err1 != nil {
+				return nil, err1
+			}
 		}
 		estFP := bloomDup - exactDup
 		if estFP < 0 {
