@@ -144,3 +144,62 @@ func TestBloomFilterSHA256(t *testing.T) {
 		t.Errorf("ожидалось положительное значение памяти, получено %d", memory)
 	}
 }
+
+func TestBloomFilterBadExpectedItems(t *testing.T) {
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event3.jsonl", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, _, _, err = BloomFilter(events, -1, "fnv64_double_hashing", 0.01)
+	if err == nil {
+		t.Fatal("ожидали ошибку при expectedItems < 0")
+	}
+}
+
+func TestCountingBloomFilterBadRate(t *testing.T) {
+	events, _, _, err := model.ReadEvents("../../testdata/tests/event3.jsonl", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, _, _, err = CountingBloomFilter(events, 10, "fnv64_double_hashing", 0)
+	if err == nil {
+		t.Fatal("ожидали ошибку при p=0")
+	}
+}
+
+func TestHash(t *testing.T) {
+	h11, h12 := Hash("value")
+	h21, h22 := Hash("value")
+
+	if h11 != h21 || h12 != h22 {
+		t.Errorf("Hash должны быть одинаковыми, получили (%d, %d) и (%d, %d)", h11, h12, h21, h22)
+	}
+}
+
+func TestGetIndexesRange(t *testing.T) {
+	indexes := getIndexes("tratata", 7, 100)
+
+	if len(indexes) != 7 {
+		t.Fatalf("ожидали 7 индексов, получили %d", len(indexes))
+	}
+
+	for _, idx := range indexes {
+		if idx >= 100 {
+			t.Errorf("индекс вне диапазона: %d", idx)
+		}
+	}
+}
+
+func TestGetIndexesSHA256Range(t *testing.T) {
+	indexes := getIndexesSHA256("tratata", 7, 100)
+
+	if len(indexes) != 7 {
+		t.Fatalf("ожидали 7 индексов, получили %d", len(indexes))
+	}
+
+	for _, idx := range indexes {
+		if idx >= 100 {
+			t.Errorf("индекс вне диапазона: %d", idx)
+		}
+	}
+}

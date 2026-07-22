@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"hash/fnv"
+	"math"
 	"runtime"
 	"sort"
 	"time"
@@ -165,7 +166,9 @@ func CountingBloomFilter(events []model.Event, expectedItems int, hash string, p
 			duplicates++
 		}
 		for _, idx := range indexes {
-			counters[idx]++
+			if counters[idx] < math.MaxUint16 {
+				counters[idx]++
+			}
 		}
 
 	}

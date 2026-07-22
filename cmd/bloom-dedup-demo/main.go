@@ -56,6 +56,7 @@ func main() {
 		reportFile := runCmd.String("report", "", "файл JSON или MD отчёта")
 		//reportMdFile := runCmd.String("report-md", "", "файл Markdown-отчёта")
 		sourcesBoolFlag := runCmd.Bool("fls", true, "флаг пропуска событий с невалидными источником и датой (true - пропуск)")
+		exactCompare := runCmd.Bool("exact-compare", true, "флаг отключения точного сравнения (false - без map")
 		runCmd.Parse(os.Args[2:])
 		if *in == "" {
 			fmt.Fprintln(os.Stderr, "путь файла событий не может быть пустым")
@@ -65,8 +66,8 @@ func main() {
 			fmt.Fprintln(os.Stderr, "путь файла конфигурации не может быть пустым")
 			os.Exit(1)
 		}
-		if *outRes == "" {
-			fmt.Fprintln(os.Stderr, " путь выходного файла не может быть пустым")
+		if *exactCompare && *outRes == "" {
+			fmt.Fprintln(os.Stderr, " путь выходного файла не может быть пустым при --exact-compare=true")
 			os.Exit(1)
 		}
 		if *reportFile == "" {
@@ -78,18 +79,20 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		eventResult, _, _, _, _, err := bloom.MapFilter(events)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-		err = report2.WriteEvents(*outRes, eventResult)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+		if *exactCompare {
+			eventResult, _, _, _, _, err := bloom.MapFilter(events)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			err = report2.WriteEvents(*outRes, eventResult)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
 		}
 
-		rep, err := report2.BuildReport(events, badLines, badSources, *cfg)
+		rep, err := report2.BuildReport(events, badLines, badSources, *cfg, *exactCompare)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -134,7 +137,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		rep, err := report2.BuildReport(events, badLines, badSources, *cfg)
+		rep, err := report2.BuildReport(events, badLines, badSources, *cfg, true)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)

@@ -38,6 +38,17 @@ func SaveMarkdown(path string, report *Report) error {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
 
+	if report.RealFalsePositiveRate == 0.0 && report.MapDurationMs == 0 && report.ExactMapMemoryBytes == 0 && report.ExactDuplicates == 0 && report.ExactUnique == 0 {
+		if _, err := writer.WriteString("# Map фильтр не запускался, все его значения обнулены"); err != nil {
+			return fmt.Errorf("ошибка записи строки: %w", err)
+		}
+		if err := writer.WriteByte('\n'); err != nil {
+			return fmt.Errorf("ошибка записи перевода строки: %w", err)
+		}
+		if err := writer.WriteByte('\n'); err != nil {
+			return fmt.Errorf("ошибка записи перевода строки: %w", err)
+		}
+	}
 	if _, err := writer.WriteString("## Общая статистика"); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}

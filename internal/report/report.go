@@ -36,17 +36,13 @@ type Report struct {
 
 // Создание отчёта
 // Входные данные: события, плохие строки, плохие источники, файл с конфигурацией, флаг пропуска
-func BuildReport(events []model.Event, badLines []int, badSources []string, pathcfg string) (*Report, error) {
+func BuildReport(events []model.Event, badLines []int, badSources []string, pathcfg string, mapMode bool) (*Report, error) {
 	cfg, err := model.ReadConfig(pathcfg)
 	if err != nil {
 		return nil, err
 	}
 	total := len(events)
 
-	_, exactUnique, exactDup, mapDuration, mapMemory, err1 := bloom.MapFilter(events)
-	if err1 != nil {
-		return nil, err1
-	}
 	var bloomNew, bloomDup, bloomMemory int
 	var bloomDuration int64
 	var err3 error
@@ -58,38 +54,64 @@ func BuildReport(events []model.Event, badLines []int, badSources []string, path
 	if err3 != nil {
 		return nil, err3
 	}
-
-	estFP := bloomDup - exactDup
-	if estFP < 0 {
-		estFP = 0
-	}
-	var fpRate float64
-	if exactUnique > 0 {
-		fpRate = float64(estFP) / float64(exactUnique)
-	}
-
 	invalid := uniqueStrings(badSources)
 
-	bS, err4 := BuildBySource(events, cfg.HashFamily, cfg.Mode, cfg.FalsePositiveRate)
-	if err4 != nil {
-		return nil, err4
+	if mapMode {
+		_, exactUnique, exactDup, mapDuration, mapMemory, err1 := bloom.MapFilter(events)
+		if err1 != nil {
+			return nil, err1
+		}
+		estFP := bloomDup - exactDup
+		if estFP < 0 {
+			estFP = 0
+		}
+		var fpRate float64
+		if exactUnique > 0 {
+			fpRate = float64(estFP) / float64(exactUnique)
+		}
+
+		bS, err4 := BuildBySource(events, cfg.HashFamily, cfg.Mode, mapMode, cfg.FalsePositiveRate)
+		if err4 != nil {
+			return nil, err4
+		}
+		return &Report{
+			TotalRecords:            total,
+			BadLines:                len(badLines),
+			ExactUnique:             exactUnique,
+			ExactDuplicates:         exactDup,
+			BloomNew:                bloomNew,
+			BloomMayDuplicate:       bloomDup,
+			EstimatedFalsePositives: estFP,
+			RealFalsePositiveRate:   fpRate,
+			BloomMemoryBytes:        bloomMemory,
+			ExactMapMemoryBytes:     mapMemory,
+			MapDurationMs:           mapDuration,
+			BloomDurationMs:         bloomDuration,
+			BySource:                bS,
+			InvalidSources:          invalid,
+		}, nil
+	} else {
+		bS, err4 := BuildBySource(events, cfg.HashFamily, cfg.Mode, mapMode, cfg.FalsePositiveRate)
+		if err4 != nil {
+			return nil, err4
+		}
+		return &Report{
+			TotalRecords:            total,
+			BadLines:                len(badLines),
+			ExactUnique:             0,
+			ExactDuplicates:         0,
+			BloomNew:                bloomNew,
+			BloomMayDuplicate:       bloomDup,
+			EstimatedFalsePositives: 0,
+			RealFalsePositiveRate:   0.0,
+			BloomMemoryBytes:        bloomMemory,
+			ExactMapMemoryBytes:     0,
+			MapDurationMs:           0,
+			BloomDurationMs:         bloomDuration,
+			BySource:                bS,
+			InvalidSources:          invalid,
+		}, nil
 	}
-	return &Report{
-		TotalRecords:            total,
-		BadLines:                len(badLines),
-		ExactUnique:             exactUnique,
-		ExactDuplicates:         exactDup,
-		BloomNew:                bloomNew,
-		BloomMayDuplicate:       bloomDup,
-		EstimatedFalsePositives: estFP,
-		RealFalsePositiveRate:   fpRate,
-		BloomMemoryBytes:        bloomMemory,
-		ExactMapMemoryBytes:     mapMemory,
-		MapDurationMs:           mapDuration,
-		BloomDurationMs:         bloomDuration,
-		BySource:                bS,
-		InvalidSources:          invalid,
-	}, nil
 }
 
 // Отбор уникальных невалидных источников
@@ -106,40 +128,67 @@ func uniqueStrings(in []string) []string {
 }
 
 // Группировка данных по источнику
-func BuildBySource(events []model.Event, hash string, mode string, fPR float64) (map[string]SourceStats, error) {
+func BuildBySource(events []model.Event, hash string, mode string, mapMpde bool, fPR float64) (map[string]SourceStats, error) {
 	bySource := make(map[string]SourceStats)
 	grouped := make(map[string][]model.Event)
 	for _, e := range events {
 		grouped[e.Source] = append(grouped[e.Source], e)
 	}
-	for src, evs := range grouped {
-		_, exactUnique, exactDup, _, _, err1 := bloom.MapFilter(evs)
-		if err1 != nil {
-			return nil, err1
-		}
-		var bloomDup int
-		if mode == "bloom" {
-			_, bloomDup, _, _, err1 = bloom.BloomFilter(evs, len(evs), hash, fPR)
+	if mapMpde {
+		for src, evs := range grouped {
+			_, exactUnique, exactDup, _, _, err1 := bloom.MapFilter(evs)
 			if err1 != nil {
 				return nil, err1
 			}
-		} else {
-			_, bloomDup, _, _, err1 = bloom.CountingBloomFilter(evs, len(evs), hash, fPR)
-			if err1 != nil {
-				return nil, err1
+			var bloomDup int
+			if mode == "bloom" {
+				_, bloomDup, _, _, err1 = bloom.BloomFilter(evs, len(evs), hash, fPR)
+				if err1 != nil {
+					return nil, err1
+				}
+			} else {
+				_, bloomDup, _, _, err1 = bloom.CountingBloomFilter(evs, len(evs), hash, fPR)
+				if err1 != nil {
+					return nil, err1
+				}
 			}
-		}
-		estFP := bloomDup - exactDup
-		if estFP < 0 {
-			estFP = 0
-		}
+			estFP := bloomDup - exactDup
+			if estFP < 0 {
+				estFP = 0
+			}
 
-		bySource[src] = SourceStats{
-			TotalRecords:            len(evs),
-			ExactUnique:             exactUnique,
-			ExactDuplicates:         exactDup,
-			BloomMayDuplicate:       bloomDup,
-			EstimatedFalsePositives: estFP,
+			bySource[src] = SourceStats{
+				TotalRecords:            len(evs),
+				ExactUnique:             exactUnique,
+				ExactDuplicates:         exactDup,
+				BloomMayDuplicate:       bloomDup,
+				EstimatedFalsePositives: estFP,
+			}
+		}
+	} else {
+		for src, evs := range grouped {
+			var bloomDup int
+			if mode == "bloom" {
+				var err1 error
+				_, bloomDup, _, _, err1 = bloom.BloomFilter(evs, len(evs), hash, fPR)
+				if err1 != nil {
+					return nil, err1
+				}
+			} else {
+				var err1 error
+				_, bloomDup, _, _, err1 = bloom.CountingBloomFilter(evs, len(evs), hash, fPR)
+				if err1 != nil {
+					return nil, err1
+				}
+			}
+
+			bySource[src] = SourceStats{
+				TotalRecords:            len(evs),
+				ExactUnique:             0,
+				ExactDuplicates:         0,
+				BloomMayDuplicate:       bloomDup,
+				EstimatedFalsePositives: 0,
+			}
 		}
 	}
 	return bySource, nil
