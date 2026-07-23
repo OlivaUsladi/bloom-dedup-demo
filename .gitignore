@@ -13,6 +13,9 @@ testdata/tests/*.json
 !testdata/control/demo_report.json
 !testdata/control/demo_config.json
 
+!output/report_one_m.json
+!output/report_one_m.md
+
 !testdata/tests/bloom1.json
 !testdata/tests/bloom_counting.json
 !testdata/tests/conf_sha256.json

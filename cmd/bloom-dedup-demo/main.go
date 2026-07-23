@@ -147,6 +147,14 @@ func main() {
 		if rep.BloomDurationMs > 0 {
 			bloomLinesPerSec = float64(rep.TotalRecords) * 1000.0 / float64(rep.BloomDurationMs)
 		}
+		estFP := 0
+		if rep.EstimatedFalsePositives != nil {
+			estFP = *rep.EstimatedFalsePositives
+		}
+		fpRate := 0.0
+		if rep.RealFalsePositiveRate != nil {
+			fpRate = *rep.RealFalsePositiveRate
+		}
 
 		fmt.Println("--- BENCH ---")
 		fmt.Println()
@@ -162,8 +170,8 @@ func main() {
 		fmt.Printf("%-40s %-18s %-18s\n", "----------------------------------------", "------------------", "------------------")
 		fmt.Printf("%-40s %-18d %-18d\n", "Уникальные", rep.ExactUnique, rep.BloomNew)
 		fmt.Printf("%-40s %-18d %-18d\n", "Дубликаты", rep.ExactDuplicates, rep.BloomMayDuplicate)
-		fmt.Printf("%-40s %-18d %-18d\n", "Ложные срабатывания", 0, rep.EstimatedFalsePositives)
-		fmt.Printf("%-40s %-18.10f %-18.10f\n", "Ложное срабатывание rate", 0.0, rep.RealFalsePositiveRate)
+		fmt.Printf("%-40s %-18d %-18d\n", "Ложные срабатывания", 0, estFP)
+		fmt.Printf("%-40s %-18.10f %-18.10f\n", "Ложное срабатывание rate", 0.0, fpRate)
 		fmt.Printf("%-40s %-18d %-18d\n", "Память, байт", rep.ExactMapMemoryBytes, rep.BloomMemoryBytes)
 		fmt.Printf("%-40s %-18.2f %-18.2f\n", "Память, Мб", exactMiB, bloomMiB)
 		fmt.Printf("%-40s %-18d %-18d\n", "Время, мс", rep.MapDurationMs, rep.BloomDurationMs)

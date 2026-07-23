@@ -53,14 +53,14 @@ make demo
 Параметры генератора:
 - `--count` - число записей, целое число больше 0;
 - `--duplicate-ratio` - доля дублей, от 0 до 0.9;
-- `--out` - путь к отчёту в json формате;
+- `--out` - путь к выходному файлу;
 - `--seed` - seed генератора;
 - `--sources` - число источников, от 1 до 100.
 
-### Запуск дедупликации
-Пример команды для дедупликации и сохранения отчёта:
+### Запуск создания отчёта
+Пример команды для запуска и сохранения отчёта в JSON и MD форматах:
 ```powershell
-.\cmd\bloom-dedup-demo\bloom-dedup-demo.exe run --in ids.jsonl --config bloom.json --out result.jsonl --report report.json
+.\cmd\bloom-dedup-demo\bloom-dedup-demo.exe run --in ids.jsonl --config bloom.json --out report.json --report report.md
 ```
 
 Команда:
@@ -118,8 +118,7 @@ make demo
 
 ## Формат выходных данных
 
-Результат дедупликации сохраняется в отдельный файл.  
-Отчёт формируется в JSON, также поддерживается Markdown-формат.
+Основной JSON-отчёт идёт в --out, дополнительный Markdown в --report
 
 Пример полей отчёта:
 
@@ -191,8 +190,8 @@ make demo
 ```
 
 После выполнения создаются файлы:
-- `output/demo_result.jsonl`
 - `output/demo_report.json`
+- `output/demo_report.md`
 
 Краткий результат контрольного запуска:
 - `total_records`: 30
@@ -224,3 +223,92 @@ make test
 - `internal/bloom` - ok
 - `internal/model` - ok
 - `internal/report` - ok
+
+## Запуск анализа фильтров
+Команда:
+
+```powershell
+make bench
+```
+
+Результат:
+```--- BENCH ---
+
+Входной файл:                testdata/control/demo_events.jsonl
+Файл конфигурации:           testdata/control/demo_config.json
+Флаг пропуска:               true
+
+--- Метрики ---
+
+Метрика                                  Точное сравнение   Фильтр Блума
+---------------------------------------- ------------------ ------------------
+Уникальные                               22                 22
+Дубликаты                                8                  8
+Ложные срабатывания                      0                  0
+Ложное срабатывание rate                 0.0000000000       0.0000000000
+Память, байт                             6984               1199
+Память, Мб                               0.01               0.00
+Время, мс                                0                  0
+Строк в секунду                          0.00               0.00
+
+Превышение памяти map над bloom:         5.82 раза
+Замедление map относительно bloom:       0.00 раза
+```
+
+## Запуск на больших данных
+Для входного файла с 1000000 записей должно быть использовано не более 4 Мб и должно обрабатываться не менее 500 000 ID/с
+
+Для генерации файла можно использовать команду:
+
+```powershell
+.\cmd\bloom-dedup-demo\bloom-dedup-demo.exe generate --count 1000000 --duplicate-ratio 0.05 --out .\testdata\tests\ids.jsonl --seed 42 --sources 10
+```
+
+Файл конфигурации можно использовать из папки tests с парамтерами:
+
+```json
+{
+   "expected_items": 1000000,
+   "false_positive_rate": 0.01,
+   "hash_family": "fnv64_double_hashing",
+   "mode": "bloom"
+ }
+```
+
+Команда генерации отчётов в быстром режиме no-map:
+```powershell
+.\cmd\bloom-dedup-demo\bloom-dedup-demo.exe run --in .\testdata\tests\ids.jsonl --config .\testdata\tests\bloom.json --out .\output\report_one_m.json --exact-compare=false
+```
+
+Команда запуска bench для просмотра характеристик фильтра:
+
+```powershell
+.\cmd\bloom-dedup-demo\bloom-dedup-demo.exe bench --in .\testdata\tests\ids.jsonl --config .\testdata\tests\bloom.json
+```
+
+Вывод команды:
+```powershell
+--- BENCH ---
+
+Входной файл:                .\testdata\tests\ids.jsonl
+Файл конфигурации:           .\testdata\tests\bloom.json
+Флаг пропуска:               true
+
+--- Метрики ---
+
+Метрика                                  Точное сравнение   Фильтр Блума
+---------------------------------------- ------------------ ------------------
+Уникальные                               950227             948999
+Дубликаты                                49773              51001
+Ложные срабатывания                      0                  1228
+Ложное срабатывание rate                 0.0000000000       0.0012923228
+Память, байт                             442770296          1198133
+Память, Мб                               422.26             1.14
+Время, мс                                472                75
+Строк в секунду                          2118644.07         13333333.33
+
+Превышение памяти map над bloom:         369.55 раза
+Замедление map относительно bloom:       6.29 раза
+```
+
+Результаты показывают, что память меньше 4 Мб, а обработка строк более 500 000 в секунду.
