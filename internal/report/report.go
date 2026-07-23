@@ -24,8 +24,8 @@ type Report struct {
 	ExactDuplicates         int                    `json:"exact_duplicates"`
 	BloomNew                int                    `json:"bloom_new"`
 	BloomMayDuplicate       int                    `json:"bloom_may_duplicate"`
-	EstimatedFalsePositives int                    `json:"estimated_false_positives"`
-	RealFalsePositiveRate   float64                `json:"real_false_positive_rate"`
+	EstimatedFalsePositives *int                   `json:"estimated_false_positives"`
+	RealFalsePositiveRate   *float64               `json:"real_false_positive_rate"`
 	BloomMemoryBytes        int                    `json:"bloom_memory_bytes"`
 	ExactMapMemoryBytes     int                    `json:"exact_map_memory_bytes"`
 	MapDurationMs           int64                  `json:"map_duration_ms"`
@@ -81,8 +81,8 @@ func BuildReport(events []model.Event, badLines []int, badSources []string, path
 			ExactDuplicates:         exactDup,
 			BloomNew:                bloomNew,
 			BloomMayDuplicate:       bloomDup,
-			EstimatedFalsePositives: estFP,
-			RealFalsePositiveRate:   fpRate,
+			EstimatedFalsePositives: &estFP,
+			RealFalsePositiveRate:   &fpRate,
 			BloomMemoryBytes:        bloomMemory,
 			ExactMapMemoryBytes:     mapMemory,
 			MapDurationMs:           mapDuration,
@@ -102,8 +102,8 @@ func BuildReport(events []model.Event, badLines []int, badSources []string, path
 			ExactDuplicates:         0,
 			BloomNew:                bloomNew,
 			BloomMayDuplicate:       bloomDup,
-			EstimatedFalsePositives: 0,
-			RealFalsePositiveRate:   0.0,
+			EstimatedFalsePositives: nil,
+			RealFalsePositiveRate:   nil,
 			BloomMemoryBytes:        bloomMemory,
 			ExactMapMemoryBytes:     0,
 			MapDurationMs:           0,

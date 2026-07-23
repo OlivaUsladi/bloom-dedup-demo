@@ -14,7 +14,7 @@ bench: build
 	$(BINARY) bench --in $(CONTROL)/demo_events.jsonl --config $(CONTROL)/demo_config.json
 
 demo: build
-	$(BINARY) run --in $(CONTROL)/demo_events.jsonl --config $(CONTROL)/demo_config.json --out $(OUTPUT)/demo_result.jsonl --report $(OUTPUT)/demo_report.md
+	$(BINARY) run --in $(CONTROL)/demo_events.jsonl --config $(CONTROL)/demo_config.json --out $(OUTPUT)/demo_report.json --report $(OUTPUT)/demo_report.md
 clean:
 	@if exist "$(BINARY)" del "$(BINARY)"
 

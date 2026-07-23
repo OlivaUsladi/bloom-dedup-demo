@@ -38,8 +38,8 @@ func SaveMarkdown(path string, report *Report) error {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
 
-	if report.RealFalsePositiveRate == 0.0 && report.MapDurationMs == 0 && report.ExactMapMemoryBytes == 0 && report.ExactDuplicates == 0 && report.ExactUnique == 0 {
-		if _, err := writer.WriteString("# Map фильтр не запускался, все его значения обнулены"); err != nil {
+	if report.EstimatedFalsePositives == nil && report.RealFalsePositiveRate == nil {
+		if _, err := writer.WriteString("# Map фильтр не запускался, его параметры отсутствуют"); err != nil {
 			return fmt.Errorf("ошибка записи строки: %w", err)
 		}
 		if err := writer.WriteByte('\n'); err != nil {
@@ -92,16 +92,24 @@ func SaveMarkdown(path string, report *Report) error {
 	if _, err := writer.WriteString("- Дубликаты по фильтру Блума: " + strconv.Itoa(report.BloomMayDuplicate)); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
+	estFPStr := "не измерялось"
+	if report.EstimatedFalsePositives != nil {
+		estFPStr = strconv.Itoa(*report.EstimatedFalsePositives)
+	}
+	fpRateStr := "не измерялась"
+	if report.RealFalsePositiveRate != nil {
+		fpRateStr = strconv.FormatFloat(*report.RealFalsePositiveRate, 'f', 10, 64)
+	}
 	if err := writer.WriteByte('\n'); err != nil {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
-	if _, err := writer.WriteString("- Число случаев, когда фильтр Блума ошибочно счёл новый элемент дублем: " + strconv.Itoa(report.EstimatedFalsePositives)); err != nil {
+	if _, err := writer.WriteString("- Число случаев, когда фильтр Блума ошибочно счёл новый элемент дублем: " + estFPStr); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
 	if err := writer.WriteByte('\n'); err != nil {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
-	if _, err := writer.WriteString("- Измеренная доля ложных срабатываний: " + strconv.FormatFloat(report.RealFalsePositiveRate, 'f', 10, 64)); err != nil {
+	if _, err := writer.WriteString("- Измеренная доля ложных срабатываний: " + fpRateStr); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
 	if err := writer.WriteByte('\n'); err != nil {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bloom-dedup-demo/internal/bloom"
 	"bloom-dedup-demo/internal/model"
 	report2 "bloom-dedup-demo/internal/report"
 	"flag"
@@ -52,9 +51,8 @@ func main() {
 		runCmd := flag.NewFlagSet("run", flag.ExitOnError)
 		in := runCmd.String("in", "", "входной файл")
 		cfg := runCmd.String("config", "", "файл конфигурации")
-		outRes := runCmd.String("out", "", "файл результата")
-		reportFile := runCmd.String("report", "", "файл JSON или MD отчёта")
-		//reportMdFile := runCmd.String("report-md", "", "файл Markdown-отчёта")
+		outRes := runCmd.String("out", "", "файл JSON отчёта")
+		reportFile := runCmd.String("report", "", "файл MD отчёта")
 		sourcesBoolFlag := runCmd.Bool("fls", true, "флаг пропуска событий с невалидными источником и датой (true - пропуск)")
 		exactCompare := runCmd.Bool("exact-compare", true, "флаг отключения точного сравнения (false - без map")
 		runCmd.Parse(os.Args[2:])
@@ -66,12 +64,16 @@ func main() {
 			fmt.Fprintln(os.Stderr, "путь файла конфигурации не может быть пустым")
 			os.Exit(1)
 		}
-		if *exactCompare && *outRes == "" {
+		if *outRes == "" {
 			fmt.Fprintln(os.Stderr, " путь выходного файла не может быть пустым при --exact-compare=true")
 			os.Exit(1)
 		}
-		if *reportFile == "" {
-			fmt.Fprintln(os.Stderr, "путь отчёта не должен быть пустым")
+		if filepath.Ext(*outRes) != ".json" {
+			fmt.Fprintln(os.Stderr, "файл --out должен быть с расширением json")
+			os.Exit(1)
+		}
+		if *reportFile != "" && filepath.Ext(*reportFile) != ".md" {
+			fmt.Fprintln(os.Stderr, "файл --report должен быть с расширением md")
 			os.Exit(1)
 		}
 		events, badLines, badSources, err := model.ReadEvents(*in, *sourcesBoolFlag)
@@ -79,42 +81,25 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		if *exactCompare {
-			eventResult, _, _, _, _, err := bloom.MapFilter(events)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-			err = report2.WriteEvents(*outRes, eventResult)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-		}
 
 		rep, err := report2.BuildReport(events, badLines, badSources, *cfg, *exactCompare)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		if filepath.Ext(*reportFile) == ".json" {
-			err = report2.SaveJSON(*reportFile, rep)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
-		} else if filepath.Ext(*reportFile) == ".md" {
+		err = report2.SaveJSON(*outRes, rep)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		if *reportFile != "" {
 			err = report2.SaveMarkdown(*reportFile, rep)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
-		} else {
-			fmt.Fprintln(os.Stderr, "поддерживаются файлы с расширением json и md")
-			os.Exit(1)
 		}
 
-		//fmt.Println(*in, *cfg, *outRes, *reportFile, *sourcesBoolFlag)
 	case "bench":
 		benchCmd := flag.NewFlagSet("bench", flag.ExitOnError)
 		in := benchCmd.String("in", "", "входной файл")
@@ -130,7 +115,6 @@ func main() {
 			fmt.Fprintln(os.Stderr, "путь файла конфигурации не должен быть пустым")
 			os.Exit(1)
 		}
-		//fmt.Println(*in, *cfg, *sourcesBoolFlag)
 		events, badLines, badSources, err := model.ReadEvents(*in, *sourcesBoolFlag)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)

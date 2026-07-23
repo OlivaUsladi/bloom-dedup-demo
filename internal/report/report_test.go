@@ -109,11 +109,11 @@ func TestBuildReportBloomWithoutMap(t *testing.T) {
 	if report.MapDurationMs != 0 {
 		t.Errorf("ожидали MapDurationMs=0, получили %d", report.MapDurationMs)
 	}
-	if report.EstimatedFalsePositives != 0 {
+	if report.EstimatedFalsePositives != nil {
 		t.Errorf("ожидали EstimatedFalsePositives=0, получили %d", report.EstimatedFalsePositives)
 	}
-	if report.RealFalsePositiveRate != 0 {
-		t.Errorf("ожидали RealFalsePositiveRate=0, получили %f", report.RealFalsePositiveRate)
+	if report.RealFalsePositiveRate != nil {
+		t.Errorf("ожидали RealFalsePositiveRate=0, получили %v", report.RealFalsePositiveRate)
 	}
 	if report.BloomNew+report.BloomMayDuplicate != report.TotalRecords {
 		t.Errorf("BloomNew + BloomMayDuplicate должно быть %d, получили %d + %d",
