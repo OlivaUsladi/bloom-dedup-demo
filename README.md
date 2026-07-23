@@ -198,10 +198,10 @@ make demo
 - `bad_lines`: 0
 - `exact_unique`: 22
 - `exact_duplicates`: 8
-- `bloom_new`: 21
-- `bloom_may_duplicate`: 9
+- `bloom_new`: 22
+- `bloom_may_duplicate`: 8
 - `estimated_false_positives`: 1
-- `real_false_positive_rate`: 0.045454545454545456
+- `real_false_positive_rate`: 0
 
 Статистика по источникам:
 - `collector_01`: 13 записей, 11 уникальных, 2 дубля;

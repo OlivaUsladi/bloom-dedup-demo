@@ -9,7 +9,6 @@ report.md
 testdata/tests/*.json
 
 !testdata/control/demo_events.jsonl
-!testdata/control/demo_result.jsonl
 !testdata/control/demo_report.json
 !testdata/control/demo_config.json
 
