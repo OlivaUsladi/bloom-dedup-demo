@@ -120,11 +120,11 @@ make demo
 - `bad_lines`: 0
 - `exact_unique`: 22
 - `exact_duplicates`: 8
-- `bloom_new`: 21
-- `bloom_may_duplicate`: 9
-- `estimated_false_positives`: 1
-- `real_false_positive_rate`: 0.045454545454545456
-- `bloom_memory_bytes`: 36
+- `bloom_new`: 22
+- `bloom_may_duplicate`: 8
+- `estimated_false_positives`: 0
+- `real_false_positive_rate`: 0
+- `bloom_memory_bytes`: 1199
 - `exact_map_memory_bytes`: 6984
 
 Статистика по источникам:
@@ -133,8 +133,6 @@ make demo
 - `collector_03`: 11 записей, 10 уникальных, 1 дубль.
 
 Некорректные источники в контрольном наборе отсутствовали: `invalid_sources = []`.
-
-По результатам demo видно, что фильтр Блума действительно может давать ложные срабатывания: из 22 реально уникальных элементов один был ошибочно посчитан возможным дублем.
 
 ## Benchmark
 

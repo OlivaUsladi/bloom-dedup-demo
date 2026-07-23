@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -14,7 +16,6 @@ func main() {
 		fmt.Println("нужна подкоманда: generate, run или bench")
 		os.Exit(1)
 	}
-	//fmt.Println(os.Args[1])
 	switch os.Args[1] {
 	case "generate":
 		genCmd := flag.NewFlagSet("generate", flag.ExitOnError)
@@ -181,6 +182,40 @@ func main() {
 		fmt.Printf("%-40s %.2f раза\n", "Превышение памяти map над bloom:", memoryRatio)
 		fmt.Printf("%-40s %.2f раза\n", "Замедление map относительно bloom:", speedRatio)
 
+	case "fptable":
+		fpCmd := flag.NewFlagSet("fptable", flag.ExitOnError)
+		in := fpCmd.String("in", "", "входной файл")
+		ratesFlag := fpCmd.String("rates", "0.1,0.05,0.01,0.001", "список false_positive_rate через запятую")
+		hashFlag := fpCmd.String("hash", "f64", "способ хеширования: f64 - fnv64_double_hashing или s256 - sha256_slices")
+		sourcesBoolFlag := fpCmd.Bool("fls", true, "флаг пропуска событий с невалидными источником и датой (true - пропуск)")
+		fpCmd.Parse(os.Args[2:])
+		if *in == "" {
+			fmt.Fprintln(os.Stderr, "путь файла событий не может быть пустым")
+			os.Exit(1)
+		}
+		if *hashFlag != "f64" && *hashFlag != "s256" {
+			fmt.Fprintln(os.Stderr, "поддерживаются hash: f64, s256")
+			os.Exit(1)
+		}
+		var rates []float64
+		for _, s := range strings.Split(*ratesFlag, ",") {
+			p, err := strconv.ParseFloat(strings.TrimSpace(s), 64)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "некорректное значение rate:", s)
+				os.Exit(1)
+			}
+			rates = append(rates, p)
+		}
+		events, _, _, err := model.ReadEvents(*in, *sourcesBoolFlag)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		err = report2.BuildFPTable(events, len(events), *hashFlag, rates)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Println("неизвестная подкоманда:", os.Args[1])
 		os.Exit(1)

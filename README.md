@@ -200,7 +200,7 @@ make demo
 - `exact_duplicates`: 8
 - `bloom_new`: 22
 - `bloom_may_duplicate`: 8
-- `estimated_false_positives`: 1
+- `estimated_false_positives`: 0
 - `real_false_positive_rate`: 0
 
 Статистика по источникам:
