@@ -21,19 +21,19 @@ func TestBuildReport(t *testing.T) {
 	if report.TotalRecords != 4 {
 		t.Errorf("ожидали TotalRecords=4, получили %d", report.TotalRecords)
 	}
-	if report.ExactUnique != 4 {
+	if *report.ExactUnique != 4 {
 		t.Errorf("ожидали ExactUnique=4, получили %d", report.ExactUnique)
 	}
-	if report.ExactDuplicates != 0 {
+	if *report.ExactDuplicates != 0 {
 		t.Errorf("ожидали ExactDuplicates=0, получили %d", report.ExactDuplicates)
 	}
 	if report.BloomMemoryBytes <= 0 {
 		t.Errorf("ожидали положительный BloomMemoryBytes, получили %d", report.BloomMemoryBytes)
 	}
-	if report.ExactMapMemoryBytes <= 0 {
+	if *report.ExactMapMemoryBytes <= 0 {
 		t.Errorf("ожидали положительный ExactMapMemoryBytes, получили %d", report.ExactMapMemoryBytes)
 	}
-	if report.MapDurationMs < 0 {
+	if *report.MapDurationMs < 0 {
 		t.Errorf("MapDurationMs не может быть отрицательным, получили %d", report.MapDurationMs)
 	}
 	if report.BloomDurationMs < 0 {
@@ -65,10 +65,10 @@ func TestBuildReportCountingBloom(t *testing.T) {
 	if report.BadLines != 0 {
 		t.Errorf("ожидали BadLines=0, получили %d", report.BadLines)
 	}
-	if report.ExactUnique != 101 {
+	if *report.ExactUnique != 101 {
 		t.Errorf("ожидали ExactUnique=101, получили %d", report.ExactUnique)
 	}
-	if report.ExactDuplicates != 99 {
+	if *report.ExactDuplicates != 99 {
 		t.Errorf("ожидали ExactDuplicates=99, получили %d", report.ExactDuplicates)
 	}
 	if report.BloomNew+report.BloomMayDuplicate != report.TotalRecords {
@@ -97,16 +97,16 @@ func TestBuildReportBloomWithoutMap(t *testing.T) {
 	if report.TotalRecords != len(events) {
 		t.Errorf("ожидали TotalRecords=%d, получили %d", len(events), report.TotalRecords)
 	}
-	if report.ExactUnique != 0 {
+	if report.ExactUnique != nil {
 		t.Errorf("ожидали ExactUnique=0, получили %d", report.ExactUnique)
 	}
-	if report.ExactDuplicates != 0 {
+	if report.ExactDuplicates != nil {
 		t.Errorf("ожидали ExactDuplicates=0, получили %d", report.ExactDuplicates)
 	}
-	if report.ExactMapMemoryBytes != 0 {
+	if report.ExactMapMemoryBytes != nil {
 		t.Errorf("ожидали ExactMapMemoryBytes=0, получили %d", report.ExactMapMemoryBytes)
 	}
-	if report.MapDurationMs != 0 {
+	if report.MapDurationMs != nil {
 		t.Errorf("ожидали MapDurationMs=0, получили %d", report.MapDurationMs)
 	}
 	if report.EstimatedFalsePositives != nil {

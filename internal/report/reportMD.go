@@ -52,6 +52,17 @@ func SaveMarkdown(path string, report *Report) error {
 	if _, err := writer.WriteString("## Общая статистика"); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
+
+	exUn := "не измерялось"
+	if report.ExactUnique != nil {
+		exUn = strconv.Itoa(*report.ExactUnique)
+	}
+
+	exDup := "не измерялось"
+	if report.ExactDuplicates != nil {
+		exDup = strconv.Itoa(*report.ExactDuplicates)
+	}
+
 	if err := writer.WriteByte('\n'); err != nil {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
@@ -71,13 +82,13 @@ func SaveMarkdown(path string, report *Report) error {
 	if err := writer.WriteByte('\n'); err != nil {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
-	if _, err := writer.WriteString("- Точное количество уникальных событий: " + strconv.Itoa(report.ExactUnique)); err != nil {
+	if _, err := writer.WriteString("- Точное количество уникальных событий: " + exUn); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
 	if err := writer.WriteByte('\n'); err != nil {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
-	if _, err := writer.WriteString("- Точное количество дубликатов: " + strconv.Itoa(report.ExactDuplicates)); err != nil {
+	if _, err := writer.WriteString("- Точное количество дубликатов: " + exDup); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
 	if err := writer.WriteByte('\n'); err != nil {
@@ -122,7 +133,22 @@ func SaveMarkdown(path string, report *Report) error {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
 	bloomMiB := float64(report.BloomMemoryBytes) / 1024.0 / 1024.0
-	exactMiB := float64(report.ExactMapMemoryBytes) / 1024.0 / 1024.0
+	exactMiB := "не измерялось"
+	if report.ExactMapMemoryBytes != nil {
+		exactMiB = strconv.FormatFloat(float64(*report.ExactMapMemoryBytes)/1024.0/1024.0, 'f', 10, 64)
+	}
+	exMem := "не измерялось"
+	if report.ExactMapMemoryBytes != nil {
+		exMem = strconv.Itoa(*report.ExactMapMemoryBytes)
+	}
+	exDur := "не измерялось"
+	if report.MapDurationMs != nil {
+		exDur = strconv.Itoa(int(*report.MapDurationMs))
+	}
+	duration := report.BloomDurationMs
+	if report.MapDurationMs != nil {
+		duration += *report.MapDurationMs
+	}
 	if bloomMiB != 0.0 {
 		if _, err := writer.WriteString(fmt.Sprintf("- Размер фильтра Блума: %.2f Mб", bloomMiB)); err != nil {
 			return fmt.Errorf("ошибка записи строки: %w", err)
@@ -131,27 +157,33 @@ func SaveMarkdown(path string, report *Report) error {
 			return fmt.Errorf("ошибка записи перевода строки: %w", err)
 		}
 	}
-	if _, err := writer.WriteString("- Количество байт для точного сравнения: " + strconv.Itoa(report.ExactMapMemoryBytes)); err != nil {
+	if _, err := writer.WriteString("- Количество байт для точного сравнения: " + exMem); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
 	if err := writer.WriteByte('\n'); err != nil {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
-	if exactMiB != 0.0 {
-		if _, err := writer.WriteString(fmt.Sprintf("- Размер структуры точного сравнения: %.2f Mб", exactMiB)); err != nil {
-			return fmt.Errorf("ошибка записи строки: %w", err)
-		}
-		if err := writer.WriteByte('\n'); err != nil {
-			return fmt.Errorf("ошибка записи перевода строки: %w", err)
-		}
+	if _, err := writer.WriteString(fmt.Sprintf("- Размер структуры точного сравнения: %s Mб", exactMiB)); err != nil {
+		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
+	if err := writer.WriteByte('\n'); err != nil {
+		return fmt.Errorf("ошибка записи перевода строки: %w", err)
+	}
+
+	if _, err := writer.WriteString("- Время выполнения анализа (мс): " + strconv.Itoa(int(duration))); err != nil {
+		return fmt.Errorf("ошибка записи строки: %w", err)
+	}
+	if err := writer.WriteByte('\n'); err != nil {
+		return fmt.Errorf("ошибка записи перевода строки: %w", err)
+	}
+
 	if _, err := writer.WriteString("- Время выполнения фильтра Блума (мс): " + strconv.Itoa(int(report.BloomDurationMs))); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
 	if err := writer.WriteByte('\n'); err != nil {
 		return fmt.Errorf("ошибка записи перевода строки: %w", err)
 	}
-	if _, err := writer.WriteString("- Время выполнения точного сравнения (мс): " + strconv.Itoa(int(report.MapDurationMs))); err != nil {
+	if _, err := writer.WriteString("- Время выполнения точного сравнения (мс): " + exDur); err != nil {
 		return fmt.Errorf("ошибка записи строки: %w", err)
 	}
 	if err := writer.WriteByte('\n'); err != nil {

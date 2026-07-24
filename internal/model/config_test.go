@@ -44,3 +44,13 @@ func TestReadConfigNegativeItems(t *testing.T) {
 		t.Errorf("ожидали ошибку при отрицательном expected_items, получили nil и n = %v", config.ExpectedItems)
 	}
 }
+
+func TestReadConfigCounting(t *testing.T) {
+	config, err := ReadConfig("../../testdata/tests/counting.json")
+	if err != nil {
+		t.Fatalf("ReadConfig вернул ошибку: %v", err)
+	}
+	if config.Mode != "counting_bloom" {
+		t.Errorf("ожидали counting_bloom, получили %s", config.Mode)
+	}
+}

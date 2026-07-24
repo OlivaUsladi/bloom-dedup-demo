@@ -11,12 +11,20 @@ func BuildFPTable(events []model.Event, expectedItems int, hash string, rates []
 	if len(rates) == 0 {
 		return fmt.Errorf("список false_positive_rate не может быть пустым")
 	}
+	if hash != "f64" && hash != "s256" {
+		return fmt.Errorf("hash должен быть f64 или s256")
+	}
+	if hash == "f64" {
+		hash = "fnv64_double_hashing"
+	} else {
+		hash = "sha256_slices"
+	}
 	_, exactUnique, exactDup, _, _, err := bloom.MapFilter(events)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Сравнение значений false_positive_rate\n")
+	fmt.Printf("Сравнение значений false_positive_rate\n\n")
 	fmt.Printf("Записей: %d, уникальных (map): %d, дублей (map): %d, expected_items: %d\n", len(events), exactUnique, exactDup, expectedItems)
 	fmt.Printf("%-5s %-12s %-5s %-15s %-15s %-18s %-18s\n", "p", "m (бит)", "k", "Память (байт)", "Дубли (Блум)", "Ложные срабатывания", "Реальный FP rate")
 	fmt.Printf("|-----|-------|-----|----------|---------|----------|----------|\n")
@@ -25,11 +33,6 @@ func BuildFPTable(events []model.Event, expectedItems int, hash string, rates []
 		m, k, err := bloom.Params(expectedItems, p)
 		if err != nil {
 			return fmt.Errorf("p=%v: %w", p, err)
-		}
-		if hash == "f64" {
-			hash = "fnv64_double_hashing"
-		} else {
-			hash = "sha256_slices"
 		}
 		_, bloomDup, _, memory, err := bloom.BloomFilter(events, expectedItems, hash, p)
 		if err != nil {

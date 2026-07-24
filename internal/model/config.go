@@ -24,6 +24,9 @@ func ReadConfig(path string) (*Config, error) {
 	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, fmt.Errorf("не удалось разобрать файл Config %s: %w", path, err)
 	}
+	if config.Mode == "counting" {
+		config.Mode = "counting_bloom"
+	}
 	if err1 := config.Validate(); err1 != nil {
 		return nil, err1
 	}

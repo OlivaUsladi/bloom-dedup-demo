@@ -128,20 +128,20 @@ func main() {
 			os.Exit(1)
 		}
 		bloomMiB := float64(rep.BloomMemoryBytes) / 1024.0 / 1024.0
-		exactMiB := float64(rep.ExactMapMemoryBytes) / 1024.0 / 1024.0
+		exactMiB := float64(*rep.ExactMapMemoryBytes) / 1024.0 / 1024.0
 
 		memoryRatio := 0.0
 		if rep.BloomMemoryBytes > 0 {
-			memoryRatio = float64(rep.ExactMapMemoryBytes) / float64(rep.BloomMemoryBytes)
+			memoryRatio = float64(*rep.ExactMapMemoryBytes) / float64(rep.BloomMemoryBytes)
 		}
 		speedRatio := 0.0
 		if rep.BloomDurationMs > 0 {
-			speedRatio = float64(rep.MapDurationMs) / float64(rep.BloomDurationMs)
+			speedRatio = float64(*rep.MapDurationMs) / float64(rep.BloomDurationMs)
 		}
 
 		mapLinesPerSec := 0.0
-		if rep.MapDurationMs > 0 {
-			mapLinesPerSec = float64(rep.TotalRecords) * 1000.0 / float64(rep.MapDurationMs)
+		if *rep.MapDurationMs > 0 {
+			mapLinesPerSec = float64(rep.TotalRecords) * 1000.0 / float64(*rep.MapDurationMs)
 		}
 
 		bloomLinesPerSec := 0.0
